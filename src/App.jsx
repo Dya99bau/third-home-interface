@@ -142,8 +142,8 @@ function SceneCamera({ mode, viewMode }) {
     )
   }
 
-  // iso / catalogue view — shared by editor and viewer
-  if (viewMode === 'iso' || viewMode === 'catalogue') {
+  // iso view — shared by editor and viewer
+  if (viewMode === 'iso') {
     return (
       <>
         <OrthographicCamera
@@ -1144,105 +1144,6 @@ const TILE_META = {
   open:    { icon: '○', label: 'Open',    desc: 'No closure — merges with adjacent space' },
 }
 
-// ── wall combination presets ──────────────────────────────────────────────────
-// Each combo maps wall `side` → wall type. Applied to all perimeter walls at once.
-const WALL_COMBOS = [
-  // ── solid/open basics ────────────────────────────────────────────────────────
-  { id: 'enclosed',     name: 'Enclosed',     desc: 'Fully enclosed · private space',
-    sides: { top:'solid',   bottom:'solid',   left:'solid',   right:'solid'   } },
-  { id: 'open-south',   name: 'Open South',   desc: '3-sided shelter · open to south',
-    sides: { top:'solid',   bottom:'open',    left:'solid',   right:'solid'   } },
-  { id: 'open-north',   name: 'Open North',   desc: '3-sided enclosure · open to north',
-    sides: { top:'open',    bottom:'solid',   left:'solid',   right:'solid'   } },
-  { id: 'corridor-ew',  name: 'E–W Passage',  desc: 'Open north + south · east–west flow',
-    sides: { top:'open',    bottom:'open',    left:'solid',   right:'solid'   } },
-  { id: 'corner-nw',    name: 'Corner NW',    desc: 'North–west shelter · 2 open sides',
-    sides: { top:'solid',   bottom:'open',    left:'solid',   right:'open'    } },
-  { id: 'corner-se',    name: 'Corner SE',    desc: 'South–east shelter · 2 open sides',
-    sides: { top:'open',    bottom:'solid',   left:'open',    right:'solid'   } },
-  // ── glazed + mixed ───────────────────────────────────────────────────────────
-  { id: 'glazed-south', name: 'Glazed South', desc: 'Solid 3 sides · glazed south facade',
-    sides: { top:'solid',   bottom:'glazed',  left:'solid',   right:'solid'   } },
-  { id: 'glazed-all',   name: 'All Glazed',   desc: 'Fully glazed · maximum transparency',
-    sides: { top:'glazed',  bottom:'glazed',  left:'glazed',  right:'glazed'  } },
-  { id: 'trama',        name: 'Trama',        desc: 'Woven grid · solid north+south · glazed east+west',
-    sides: { top:'solid',   bottom:'solid',   left:'glazed',  right:'glazed'  } },
-  { id: 'screen',       name: 'Screen Wrap',  desc: 'All soft curtain boundaries · flexible',
-    sides: { top:'curtain', bottom:'curtain', left:'curtain', right:'curtain' } },
-  // ── creative / asymmetric ────────────────────────────────────────────────────
-  { id: 'pinwheel',     name: 'Pinwheel',     desc: 'Rotating types · solid · glazed · curtain · open',
-    sides: { top:'solid',   bottom:'curtain', left:'open',    right:'glazed'  } },
-  { id: 'esquina',      name: 'Esquina',      desc: 'Corner pivot · glazed NE · solid SW',
-    sides: { top:'glazed',  bottom:'solid',   left:'solid',   right:'glazed'  } },
-]
-
-function WallComboPlan({ sides, active }) {
-  const C = { solid: '#F48FB1', glazed: '#4CC9F0', curtain: '#FFB347' }
-  const sc = (side) => C[sides[side]]
-  const cellFill = active ? 'rgba(76,201,240,0.07)' : 'rgba(255,255,255,0.03)'
-  const cellStroke = active ? 'rgba(76,201,240,0.28)' : '#2a3a5a'
-  return (
-    <svg viewBox="0 0 44 44" width="30" height="30" style={{ display: 'block' }}>
-      {[[1,1],[23,1],[1,23],[23,23]].map(([x, y], i) => (
-        <rect key={i} x={x} y={y} width={20} height={20}
-          fill={cellFill} stroke={cellStroke} strokeWidth={0.8} strokeDasharray="2,1.5" />
-      ))}
-      {sc('top')    && <line x1={1}  y1={1}  x2={43} y2={1}  stroke={sc('top')}    strokeWidth={2.5} strokeLinecap="square"/>}
-      {sc('bottom') && <line x1={1}  y1={43} x2={43} y2={43} stroke={sc('bottom')} strokeWidth={2.5} strokeLinecap="square"/>}
-      {sc('left')   && <line x1={1}  y1={1}  x2={1}  y2={43} stroke={sc('left')}   strokeWidth={2.5} strokeLinecap="square"/>}
-      {sc('right')  && <line x1={43} y1={1}  x2={43} y2={43} stroke={sc('right')}  strokeWidth={2.5} strokeLinecap="square"/>}
-    </svg>
-  )
-}
-
-// ── interior partition presets ────────────────────────────────────────────────
-// filter(wall, index) returns the wall type for each interior wall
-const INTERIOR_COMBOS = [
-  { id: 'none',      name: 'Open Plan',    desc: 'No partitions · single flowing space',
-    showH: false, showV: false,
-    filter: ()      => 'open'  },
-  { id: 'full',      name: 'Full Grid',    desc: 'All shared walls solid · Cruz pattern',
-    showH: true,  showV: true,  hColor: '#F48FB1', vColor: '#F48FB1',
-    filter: ()      => 'solid' },
-  { id: 'spine-ew',  name: 'E–W Spine',    desc: 'Horizontal divider only · splits N/S',
-    showH: true,  showV: false, hColor: '#F48FB1',
-    filter: (w)     => w.geo === 'h' ? 'solid' : 'open' },
-  { id: 'spine-ns',  name: 'N–S Spine',    desc: 'Vertical divider only · splits E/W',
-    showH: false, showV: true,  vColor: '#F48FB1',
-    filter: (w)     => w.geo === 'v' ? 'solid' : 'open' },
-  { id: 'glazed',    name: 'Glass Divide', desc: 'All partitions glazed · shared visibility',
-    showH: true,  showV: true,  hColor: '#4CC9F0', vColor: '#4CC9F0',
-    filter: ()      => 'glazed' },
-  { id: 'curtain',   name: 'Curtain Div',  desc: 'Soft curtain dividers · flexible plan',
-    showH: true,  showV: true,  hColor: '#FFB347', vColor: '#FFB347',
-    filter: ()      => 'curtain' },
-  { id: 'mixed',     name: 'Glass + Solid',desc: 'E–W glazed · N–S solid · layered grid',
-    showH: true,  showV: true,  hColor: '#4CC9F0', vColor: '#F48FB1',
-    filter: (w)     => w.geo === 'h' ? 'glazed' : 'solid' },
-  { id: 'alternate', name: 'Alternate',    desc: 'Every other partition · enfilade reading',
-    showH: true,  showV: false, hColor: '#F48FB1',
-    filter: (_, i) => i % 2 === 0 ? 'solid' : 'open' },
-]
-
-function InteriorComboPlan({ combo, active }) {
-  const cellFill   = active ? 'rgba(76,201,240,0.07)' : 'rgba(255,255,255,0.03)'
-  const cellStroke = active ? 'rgba(76,201,240,0.28)' : '#2a3a5a'
-  return (
-    <svg viewBox="0 0 44 44" width="30" height="30" style={{ display: 'block' }}>
-      {[[1,1],[23,1],[1,23],[23,23]].map(([x, y], i) => (
-        <rect key={i} x={x} y={y} width={20} height={20}
-          fill={cellFill} stroke={cellStroke} strokeWidth={0.8} strokeDasharray="2,1.5" />
-      ))}
-      {/* faint perimeter border */}
-      <rect x={1} y={1} width={42} height={42} fill="none" stroke="#3a4a6a" strokeWidth={1} />
-      {/* interior H partition (divides top/bottom rows) */}
-      {combo.showH && <line x1={1} y1={22} x2={43} y2={22} stroke={combo.hColor || '#F48FB1'} strokeWidth={2.5} strokeLinecap="square"/>}
-      {/* interior V partition (divides left/right columns) */}
-      {combo.showV && <line x1={22} y1={1}  x2={22} y2={43} stroke={combo.vColor || '#F48FB1'} strokeWidth={2.5} strokeLinecap="square"/>}
-    </svg>
-  )
-}
-
 function AssemblyPanel({ booking, assemblyWalls, animStep, wallTypes, activeWallId, onClose, onPlay, onReset, onSetWallType, onSelectWall, roofMorphData, onSetRoof }) {
   const n       = booking.cells.length
   const sqm     = (n * BKG_SQM).toFixed(0)
@@ -1658,759 +1559,6 @@ function BookingRightPanel({
   )
 }
 
-// ── module catalogue: room type definitions (pattern matching added by user) ───
-// `units` = number of 5×5 m cells required; used to filter by bkgSel.size
-// levels: how many consecutive floors the module occupies (default 1)
-const MODULE_DEFS = [
-  // ── 1 floor ────────────────────────────────────────────────────────────────
-  { id: 'stay-room',        name: 'Stay Room',           units: 1, levels: 1, size: '5 × 5 m',          icon: '⬛', desc: 'Single bay · Fully enclosed · Residential sleeping unit' },
-  { id: 'pavilion',         name: 'Open Pavilion',       units: 1, levels: 1, size: '5 × 5 m',          icon: '◇', desc: 'Single bay · All sides open · Freestanding canopy shelter' },
-  { id: 'meeting-room',     name: 'Meeting Room',        units: 2, levels: 1, size: '10 × 5 m',         icon: '⬜', desc: 'Double bay · Enclosed 3 sides · Open south' },
-  { id: 'rest-room',        name: 'Rest Room',           units: 2, levels: 1, size: '5 × 10 m',         icon: '▮', desc: 'Stacked double bay · Fully enclosed' },
-  { id: 'alcove',           name: 'Alcove Niche',        units: 2, levels: 1, size: '10 × 5 m',         icon: '⊏', desc: 'U-shape recess · 3 solid walls · open front face' },
-  { id: 'corridor',         name: 'Corridor',            units: 3, levels: 1, size: '15 × 5 m',         icon: '▬', desc: 'Linear triple bay · Walled long sides' },
-  { id: 'studio',           name: 'Individual Studio',   units: 3, levels: 1, size: '10 × 5 m + bay',   icon: '⌐', desc: 'L-shape · Private enclosed studio' },
-  { id: 'arcade',           name: 'Arcade',              units: 3, levels: 1, size: '15 × 5 m',         icon: '⊢', desc: 'Covered colonnade · glazed front · open ends · sheltered passage' },
-  { id: 'public-area',      name: 'Public Area',         units: 4, levels: 1, size: '10 × 10 m',        icon: '⊞', desc: '2×2 grid · Open centre · Community space' },
-  { id: 'gallery',          name: 'Gallery',             units: 4, levels: 1, size: '20 × 5 m',         icon: '▭', desc: 'Quad linear bay · Exhibition hall' },
-  { id: 'pinwheel-court',   name: 'Pinwheel Court',      units: 4, levels: 1, size: '10 × 10 m',        icon: '✦', desc: '2×2 pinwheel · rotating open + closed sides · courtyard reading' },
-  { id: 'pavilion-cluster', name: 'Pavilion Cluster',    units: 4, levels: 1, size: '10 × 10 m',        icon: '⁛', desc: 'Four open bays · independent pavilions sharing a floor plane' },
-  { id: 'auditorium',       name: 'Auditorium',          units: 6, levels: 1, size: '15 × 10 m',        icon: '⊿', desc: 'Stepped 3×2 bays · Two-level amphitheatre' },
-  { id: 'stair-module',     name: 'Stair Module',        units: 4, levels: 1, size: '10 × 5 m',         icon: '↑', desc: 'Vertical circulation · Single-floor landing' },
-  // ── 2 floors ───────────────────────────────────────────────────────────────
-  { id: 'sky-box',          name: 'Sky Box',             units: 1, levels: 2, size: '5 × 5 m · 2F',    icon: '◈', desc: 'Double-height single bay · dramatic vertical room · terrace option' },
-  { id: 'duplex-unit',      name: 'Duplex Unit',         units: 2, levels: 2, size: '10 × 5 m · 2F',   icon: '⬚', desc: '2-storey residential · split-level entry' },
-  { id: 'live-work-unit',   name: 'Live / Work Unit',    units: 2, levels: 2, size: '5 × 10 m · 2F',   icon: '▮▮', desc: 'Ground commercial · upper residential' },
-  { id: 'split-level',      name: 'Split Level',         units: 3, levels: 2, size: '15 × 5 m · 2F',   icon: '⊣', desc: 'Staggered half-levels · flowing spatial sequence' },
-  { id: 'workshop-loft',    name: 'Workshop + Loft',     units: 3, levels: 2, size: '15 × 5 m · 2F',   icon: '⊤', desc: 'Ground-floor workshop · upper sleeping loft' },
-  { id: 'mezzanine-studio', name: 'Mezzanine Studio',    units: 3, levels: 2, size: '15 × 5 m · 2F',   icon: '⌐⌐', desc: 'Studio with raised mezzanine sleeping level' },
-  { id: 'void-atrium',      name: 'Void Atrium',         units: 4, levels: 2, size: '10 × 10 m · 2F',  icon: '⊟', desc: 'Double-height courtyard · open sky void above' },
-  { id: 'bridge-gallery',   name: 'Bridge Gallery',      units: 4, levels: 2, size: '20 × 5 m · 2F',   icon: '⊫', desc: 'Exhibition hall level + walkway bridge above' },
-  { id: 'aba-pavilion',     name: 'ABA Pavilion',        units: 4, levels: 2, size: '10 × 10 m · 2F',  icon: '⁙', desc: 'Pavilion + open bay + pavilion · Beaux-Arts + modern reading' },
-  // ── 3 floors ───────────────────────────────────────────────────────────────
-  { id: 'beacon-tower',     name: 'Beacon Tower',        units: 1, levels: 3, size: '5 × 5 m · 3F',    icon: '◉', desc: 'Triple-height single bay · vertical landmark · roof terrace' },
-  { id: 'stair-tower',      name: 'Stair Tower',         units: 2, levels: 3, size: '10 × 5 m · 3F',   icon: '↑↑', desc: 'Vertical circulation · 3-storey stair core' },
-  { id: 'community-hub',    name: 'Community Hub',       units: 3, levels: 3, size: '15 × 5 m · 3F',   icon: '⊥⊥', desc: 'Public · social · programme stacked 3 levels' },
-  { id: 'triple-hall',      name: 'Triple-Height Hall',  units: 4, levels: 3, size: '10 × 10 m · 3F',  icon: '⊞⊞', desc: 'Dramatic civic hall · 9.6 m clear height' },
-  { id: 'urban-villa',      name: 'Urban Villa',         units: 4, levels: 3, size: '10 × 10 m · 3F',  icon: '⊠', desc: '3-storey residential villa · pinwheel plan · ABA pavilion logic' },
-]
-
-// ── catalogue: left panel ─────────────────────────────────────────────────────
-function CataloguePanel({ catFloor, catCells, levelCount, onLevelCount, modConfigId, onModConfig }) {
-  const selN      = catCells.size
-  const fl        = BKG_FLOORS[catFloor]
-  const available = MODULE_DEFS.filter(m => m.units === selN && m.levels === levelCount)
-  const maxLevels = Math.min(3, 6 - catFloor)  // can't go above floor 5
-
-  return (
-    <div className="panel cat-panel">
-      <div className="panel-header">
-        <div className="panel-logo-row">
-          <div className="panel-logo">Third Home</div>
-          <InfoMenu />
-        </div>
-        <div className="panel-subtitle">Module Catalogue</div>
-      </div>
-
-      <div className="cat-ctx">
-        <div className="cat-ctx-floor">
-          <span className="cat-ctx-label">BASE FLOOR</span>
-          <span className="cat-ctx-val">{fl.name}</span>
-          <span className="cat-ctx-z">{fl.z}</span>
-        </div>
-        <div className={`cat-ctx-cells${selN > 0 ? ' has-sel' : ''}`}>
-          {selN === 0
-            ? 'Select cells in Plan or Iso view'
-            : `${selN} cell${selN > 1 ? 's' : ''} × ${levelCount} floor${levelCount > 1 ? 's' : ''} · ${selN * levelCount * BKG_SQM} m² total`}
-        </div>
-      </div>
-
-      {selN > 0 && (
-        <div className="cat-levels">
-          <span className="cat-levels-label">VERTICAL LEVELS</span>
-          <div className="cat-levels-row">
-            {[1, 2, 3].map(n => (
-              <button
-                key={n}
-                disabled={n > maxLevels}
-                className={`cat-lvl-btn${levelCount === n ? ' active' : ''}`}
-                onClick={() => { onLevelCount(n); onModConfig(null) }}
-                title={n > maxLevels ? `Can't add ${n} levels from ${fl.name}` : `${n} floor${n > 1 ? 's' : ''}`}
-              >
-                {n}F
-              </button>
-            ))}
-          </div>
-          {levelCount > 1 && (
-            <div className="cat-levels-hint">
-              {fl.name} → {BKG_FLOORS[Math.min(catFloor + levelCount - 1, 5)].name}
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className="cat-cfg-head">
-        <span className="cat-cfg-label">POSSIBLE CONFIGURATIONS</span>
-        <span className="cat-cfg-count">{selN > 0 ? available.length : '—'}</span>
-      </div>
-
-      <div className="cat-cfg-list">
-        {selN === 0 && (
-          <div className="cat-empty">
-            <div className="cat-empty-icon">↖</div>
-            <div className="cat-empty-txt">Select cells in Plan or Iso view<br />then switch back here.<br />Your selection carries over.</div>
-          </div>
-        )}
-        {selN > 0 && available.length === 0 && (
-          <div className="cat-empty">
-            <div className="cat-empty-icon">—</div>
-            <div className="cat-empty-txt">No layout defined for<br />{selN} cells × {levelCount} floor{levelCount > 1 ? 's' : ''} yet.<br />Try a different level count.</div>
-          </div>
-        )}
-        {available.map(m => {
-          const isSel = modConfigId === m.id
-          return (
-            <div key={m.id} className={`mod-card${isSel ? ' active' : ''}`} onClick={() => onModConfig(isSel ? null : m.id)}>
-              <div className="mod-card-top">
-                <span className="mod-icon">{m.icon}</span>
-                <div className="mod-card-info">
-                  <div className="mod-name">{m.name}</div>
-                  <div className="mod-size">{m.size}</div>
-                </div>
-              </div>
-              <div className="mod-desc">{m.desc}</div>
-            </div>
-          )
-        })}
-      </div>
-
-      <div className="panel-footer">
-        <div className="stat">
-          {modConfigId
-            ? `Preview: ${MODULE_DEFS.find(m => m.id === modConfigId)?.name}`
-            : selN > 0 ? `${selN} cells · ${levelCount}F · select a layout →` : 'No cells selected'}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── catalogue: right panel (assembly preview) ─────────────────────────────────
-function CatalogueRightPanel({ modConfigId, onClose, catFloor, catCells, levelCount, assemblyWalls, animStep, wallTypes, activeWallId, onPlay, onReset, onSetWallType, onSelectWall, wallComboId, onApplyCombo, interiorComboId, onApplyInteriorCombo, roofEnabled, roofInflation, onToggleRoof, onSetRoofInflation, hasMorphData }) {
-  const def    = modConfigId ? MODULE_DEFS.find(m => m.id === modConfigId) : null
-  const fl     = BKG_FLOORS[catFloor]
-  const selN   = catCells.size
-  const total  = assemblyWalls.length
-  const placed = Math.min(animStep, total)
-  const allIn  = placed >= total && total > 0
-  const activeW = assemblyWalls.find(w => w.id === activeWallId)
-  const curType = activeW ? (wallTypes[activeW.id] || 'solid') : null
-
-  const typeCounts = WALL_TYPES.reduce((acc, t) => {
-    acc[t] = assemblyWalls.filter(w => (wallTypes[w.id] || 'solid') === t).length
-    return acc
-  }, {})
-
-  if (!def) {
-    return (
-      <div className="brp">
-        <div className="brp-head">
-          <div className="brp-title">ASSEMBLY PREVIEW</div>
-          <div className="brp-floor-info">
-            <span className="brp-fname">{fl.name}</span>
-            <span className="brp-fz">{fl.z}</span>
-          </div>
-          <div className="brp-counter">{selN > 0 ? `${selN} cells × ${levelCount}F · ${selN * levelCount * BKG_SQM} m²` : 'No cells selected'}</div>
-        </div>
-        <div className="brp-scroll" style={{ alignItems: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', gap: 10, color: 'var(--muted)', fontSize: 10, textAlign: 'center', padding: 24 }}>
-          <div style={{ fontSize: 26, opacity: 0.12 }}>↖</div>
-          Select a layout from the left panel to preview its assembly on your selected cells
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="brp">
-      <div className="asmb-head">
-        <button className="asmb-back" onClick={onClose}>← LAYOUTS</button>
-        <div className="asmb-title">{def.name}</div>
-        <div className="asmb-meta">
-          {fl.label}{levelCount > 1 ? ` → ${BKG_FLOORS[Math.min(catFloor + levelCount - 1, 5)].label}` : ''} · {fl.z}<br />
-          {selN} cells × {levelCount}F · {selN * levelCount * BKG_SQM} m² · {total * levelCount} walls total
-        </div>
-      </div>
-
-      <div className="asmb-scroll">
-
-        {/* ── interior partition picker ── */}
-        {catCells.size > 1 && total > 0 && (
-          <div className="asmb-section">
-            <div className="asmb-slabel">INTERIOR PARTITIONS</div>
-            <div className="wc-grid">
-              {INTERIOR_COMBOS.map(combo => {
-                const isAct = interiorComboId === combo.id
-                return (
-                  <button
-                    key={combo.id}
-                    className={`wc-card${isAct ? ' active' : ''}`}
-                    onClick={() => onApplyInteriorCombo(combo.id)}
-                    title={combo.desc}
-                  >
-                    <InteriorComboPlan combo={combo} active={isAct} />
-                    <span className="wc-name">{combo.name}</span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* ── wall combination picker ── */}
-        {total > 0 && (
-          <div className="asmb-section">
-            <div className="asmb-slabel">EXTERIOR WALLS</div>
-            <div className="wc-grid">
-              {WALL_COMBOS.map(combo => {
-                const isAct = wallComboId === combo.id
-                return (
-                  <button
-                    key={combo.id}
-                    className={`wc-card${isAct ? ' active' : ''}`}
-                    onClick={() => onApplyCombo(combo.id)}
-                    title={combo.desc}
-                  >
-                    <WallComboPlan sides={combo.sides} active={isAct} />
-                    <span className="wc-name">{combo.name}</span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        <div className="asmb-section">
-          <div className="asmb-ctrl">
-            <button className="asmb-btn play" onClick={onPlay} disabled={allIn}>
-              {allIn ? '✓ All placed' : '▶ Animate walls'}
-            </button>
-            <button className="asmb-btn reset" onClick={onReset} title="Reset">↺</button>
-          </div>
-          <div className="asmb-prog-bar">
-            <div className="asmb-prog-fill" style={{ width: total > 0 ? `${(placed / total) * 100}%` : '0%' }} />
-          </div>
-          <div className="asmb-prog-txt">
-            {placed === 0 ? `${total} walls · press ▶ to place`
-              : allIn ? 'All walls placed — click any to edit'
-              : `${placed} / ${total} walls placed`}
-          </div>
-        </div>
-
-        {activeW ? (
-          <div className="asmb-section asmb-picker">
-            <div className="asmb-pick-label">{SIDE_LABELS[activeW.side]} wall</div>
-            <div className="asmb-tiles">
-              {WALL_TYPES.map(t => {
-                const meta = TILE_META[t]
-                return (
-                  <button key={t} className={`asmb-tile t-${t}${curType === t ? ' active' : ''}`} onClick={() => onSetWallType(activeW.id, t)}>
-                    <span className="atile-icon">{meta.icon}</span>
-                    <span className="atile-lbl">{meta.label}</span>
-                  </button>
-                )
-              })}
-            </div>
-            <div className="asmb-type-desc">{TILE_META[curType].desc}</div>
-            <button className="asmb-complete-btn" onClick={() => onSelectWall(null)}>✓ Done editing this wall</button>
-          </div>
-        ) : (
-          <div className="asmb-section asmb-idle">
-            <div className="asmb-idle-icon">↗</div>
-            <div className="asmb-idle-txt">Tap any wall in the 3D view<br />to choose its type</div>
-          </div>
-        )}
-
-        {assemblyWalls.length > 0 && (
-          <div className="asmb-section">
-            <div className="asmb-slabel">APPLIED TYPES</div>
-            <div className="asmb-summary-bar">
-              {WALL_TYPES.map(t => typeCounts[t] > 0 && (
-                <div key={t} className={`asb-seg t-${t}`} style={{ flex: typeCounts[t] }} />
-              ))}
-            </div>
-            <div className="asmb-summary-labels">
-              {WALL_TYPES.map(t => typeCounts[t] > 0 && (
-                <div key={t} className={`asl-item t-${t}`}>
-                  <span className={`asl-dot t-${t}`} />
-                  {TILE_META[t].label} · {typeCounts[t]}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── parametric roof ── */}
-        <div className="asmb-section">
-          <div className="asmb-slabel">PARAMETRIC ROOF</div>
-          <div className="roof-toggle-row">
-            <button
-              className={`roof-toggle${roofEnabled ? ' active' : ''}`}
-              onClick={onToggleRoof}
-              disabled={!hasMorphData}
-              title={hasMorphData ? 'Toggle roof' : 'roof_morph.json not loaded yet'}
-            >
-              {roofEnabled ? '⬡ Roof On' : '⬡ Add Roof'}
-            </button>
-            {!hasMorphData && <span className="roof-no-data">Export frames from GH first</span>}
-          </div>
-          {roofEnabled && hasMorphData && (
-            <div className="roof-slider-wrap">
-              <div className="roof-slider-labels">
-                <span>Flat</span>
-                <span className="roof-pct">{roofInflation}%</span>
-                <span>Inflated</span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                step={1}
-                value={roofInflation}
-                onChange={e => onSetRoofInflation(Number(e.target.value))}
-                className="roof-slider"
-                style={{ '--pct': `${roofInflation}%` }}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── (old catalogue component data — kept only so nothing breaks during cleanup) ─
-const CATALOGUE_MODULES = [
-  {
-    id: 'floor-slab',
-    name: 'Floor Slab',
-    category: 'Structure',
-    dims: '5.0 × 5.0 × 0.18 m',
-    material: 'Reinforced concrete cassette',
-    desc: 'Standard 5×5 m structural floor unit. Stackable to 6 levels.',
-    color: '#4a72c0',
-    icon: '▬',
-    layers: ['Floor G', 'floor 1', 'floor 2', 'floor 3', 'floor 4', 'floor 5'],
-  },
-  {
-    id: 'solid-panel',
-    name: 'Solid Wall Panel',
-    category: 'Wall',
-    dims: '5.0 × 3.2 × 0.14 m',
-    material: 'Insulated composite panel',
-    desc: 'Opaque thermally insulated wall. Clip-lock assembly onto column grid.',
-    color: '#6080b0',
-    icon: '▪',
-    layers: ['walls', 'walls 2', 'walls 3'],
-  },
-  {
-    id: 'glazed-panel',
-    name: 'Glazed Panel',
-    category: 'Wall',
-    dims: '5.0 × 3.2 × 0.08 m',
-    material: 'Triple glazed / aluminium frame',
-    desc: 'Full-height glass unit. Maximises daylight and exterior views.',
-    color: '#4CC9F0',
-    icon: '◻',
-    layers: [],
-  },
-  {
-    id: 'curtain-track',
-    name: 'Curtain Track',
-    category: 'Wall',
-    dims: '5.0 × 3.2 m',
-    material: 'Acoustic textile / steel track',
-    desc: 'Flexible acoustic divider. Slides open in under a minute.',
-    color: '#c8a96e',
-    icon: '≋',
-    layers: [],
-  },
-  {
-    id: 'column',
-    name: 'Structural Column',
-    category: 'Structure',
-    dims: 'Ø 0.30 × 3.2 m',
-    material: 'Circular hollow steel section',
-    desc: 'Primary vertical load-bearing element. Bolted base plate connection.',
-    color: '#8898aa',
-    icon: '|',
-    layers: ['columns'],
-  },
-  {
-    id: 'stair-module',
-    name: 'Stair Module',
-    category: 'Circulation',
-    dims: '5.0 × 3.0 × 3.2 m',
-    material: 'Steel frame / concrete treads',
-    desc: 'Pre-assembled stair flight. Delivered as single lift-in unit.',
-    color: '#5c8aaa',
-    icon: '↑',
-    layers: ['stairs', 'staircase'],
-  },
-  {
-    id: 'lift-core',
-    name: 'Lift Core',
-    category: 'Circulation',
-    dims: '2.5 × 2.5 × 3.2 m per floor',
-    material: 'Prefabricated concrete shaft',
-    desc: 'Modular lift shaft section. One section stacked per floor.',
-    color: '#4a6070',
-    icon: '⊡',
-    layers: ['lift'],
-  },
-  {
-    id: 'deployable-unit',
-    name: 'Deployable Unit',
-    category: 'Module',
-    dims: '5.0 × 5.0 × 3.2 m',
-    material: 'Composite frame / steel nodes',
-    desc: 'Core spatial unit. Combines floor slab, perimeter walls and connection nodes into one deployable kit.',
-    color: '#FFE600',
-    icon: '⬡',
-    layers: ['deployable model 3'],
-  },
-]
-
-const _OLD_DEFS_REMOVED = [
-  { id: 'DEAD' },
-  {
-    id: 'rest-room', name: 'Rest Room', units: 2,
-    wallSurfaces: 6, size: '6 × 12 m', icon: '▮',
-    desc: 'Stacked double bay · Fully enclosed · Deep plan',
-    floors: [{c:0,r:0,lv:0},{c:0,r:1,lv:0}],
-    walls: [
-      {c:0,r:0,lv:0,face:'N'},{c:0,r:0,lv:0,face:'E'},{c:0,r:0,lv:0,face:'W'},
-      {c:0,r:1,lv:0,face:'S'},{c:0,r:1,lv:0,face:'E'},{c:0,r:1,lv:0,face:'W'},
-    ],
-  },
-  {
-    id: 'corridor', name: 'Corridor', units: 3,
-    wallSurfaces: 6, size: '18 × 6 m', icon: '▬',
-    desc: 'Linear triple bay · Walled long sides · Open ends',
-    floors: [{c:0,r:0,lv:0},{c:1,r:0,lv:0},{c:2,r:0,lv:0}],
-    walls: [
-      {c:0,r:0,lv:0,face:'N'},{c:1,r:0,lv:0,face:'N'},{c:2,r:0,lv:0,face:'N'},
-      {c:0,r:0,lv:0,face:'S'},{c:1,r:0,lv:0,face:'S'},{c:2,r:0,lv:0,face:'S'},
-    ],
-  },
-  {
-    id: 'studio', name: 'Individual Studio', units: 3,
-    wallSurfaces: 8, size: '12 × 6 m + bay', icon: '⌐',
-    desc: 'L-shape · Private enclosed studio space',
-    floors: [{c:0,r:0,lv:0},{c:1,r:0,lv:0},{c:1,r:1,lv:0}],
-    walls: [
-      {c:0,r:0,lv:0,face:'N'},{c:0,r:0,lv:0,face:'S'},{c:0,r:0,lv:0,face:'W'},
-      {c:1,r:0,lv:0,face:'N'},{c:1,r:0,lv:0,face:'E'},
-      {c:1,r:1,lv:0,face:'S'},{c:1,r:1,lv:0,face:'E'},{c:1,r:1,lv:0,face:'W'},
-    ],
-  },
-  {
-    id: 'public-area', name: 'Public Area', units: 4,
-    wallSurfaces: 6, size: '12 × 12 m', icon: '⊞',
-    desc: '2×2 grid · Open centre · Community space',
-    floors: [{c:0,r:0,lv:0},{c:1,r:0,lv:0},{c:0,r:1,lv:0},{c:1,r:1,lv:0}],
-    walls: [
-      {c:0,r:0,lv:0,face:'N'},{c:1,r:0,lv:0,face:'N'},
-      {c:0,r:0,lv:0,face:'W'},{c:0,r:1,lv:0,face:'W'},
-      {c:1,r:0,lv:0,face:'E'},{c:1,r:1,lv:0,face:'E'},
-    ],
-  },
-  {
-    id: 'gallery', name: 'Gallery', units: 4,
-    wallSurfaces: 6, size: '24 × 6 m', icon: '▭',
-    desc: 'Quad linear bay · Exhibition hall · Open north face',
-    floors: [{c:0,r:0,lv:0},{c:1,r:0,lv:0},{c:2,r:0,lv:0},{c:3,r:0,lv:0}],
-    walls: [
-      {c:0,r:0,lv:0,face:'W'},{c:3,r:0,lv:0,face:'E'},
-      {c:0,r:0,lv:0,face:'S'},{c:1,r:0,lv:0,face:'S'},
-      {c:2,r:0,lv:0,face:'S'},{c:3,r:0,lv:0,face:'S'},
-    ],
-  },
-  {
-    id: 'auditorium', name: 'Auditorium', units: 6,
-    wallSurfaces: 9, size: '18 × 12 m', icon: '⊿',
-    desc: 'Stepped 3×2 bays · Two-level amphitheatre section',
-    floors: [
-      {c:0,r:0,lv:0},{c:1,r:0,lv:0},{c:2,r:0,lv:0},
-      {c:0,r:1,lv:0},{c:1,r:1,lv:0},{c:2,r:1,lv:0},
-      {c:0,r:1,lv:1},{c:1,r:1,lv:1},
-    ],
-    walls: [
-      {c:0,r:0,lv:0,face:'W'},{c:0,r:1,lv:0,face:'W'},
-      {c:2,r:0,lv:0,face:'E'},{c:2,r:1,lv:0,face:'E'},
-      {c:0,r:0,lv:0,face:'S'},{c:1,r:0,lv:0,face:'S'},{c:2,r:0,lv:0,face:'S'},
-      {c:0,r:1,lv:1,face:'N'},{c:1,r:1,lv:1,face:'N'},
-    ],
-  },
-  {
-    id: 'stair-module', name: 'Stair Module', units: 4,
-    wallSurfaces: 6, size: '12 × 6 m · 3 levels', icon: '↑',
-    desc: 'Vertical circulation · Split-level · 3 storeys',
-    floors: [
-      {c:0,r:0,lv:0},{c:1,r:0,lv:0},
-      {c:0,r:0,lv:1},{c:1,r:0,lv:1},
-      {c:0,r:0,lv:2},
-    ],
-    walls: [
-      {c:0,r:0,lv:0,face:'W'},{c:0,r:0,lv:0,face:'S'},
-      {c:1,r:0,lv:0,face:'E'},{c:1,r:0,lv:0,face:'S'},
-      {c:0,r:0,lv:2,face:'N'},{c:0,r:0,lv:2,face:'W'},
-    ],
-  },
-]
-
-const MOD_UNIT_COUNTS = [2, 3, 4, 6]
-
-// ── module assembly: 3D scene (inside Canvas) ─────────────────────────────────
-function ModuleAssemblyScene({ config, animStep }) {
-  const N_LOUVERS = 9
-  const louverH   = 0.10
-
-  const louverGeo = useMemo(() => new THREE.BoxGeometry(MOD_UNIT - 0.14, louverH, 0.07), [])
-  const louverMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#3a68b8', roughness: 0.28, metalness: 0.18 }), [])
-  const slabGeo   = useMemo(() => new THREE.BoxGeometry(MOD_UNIT - 0.12, 0.22, MOD_UNIT - 0.12), [])
-  const slabMat   = useMemo(() => new THREE.MeshStandardMaterial({ color: '#c07060', roughness: 0.72 }), [])
-
-  const { avgC, avgR } = useMemo(() => ({
-    avgC: config.floors.reduce((s, f) => s + f.c, 0) / config.floors.length,
-    avgR: config.floors.reduce((s, f) => s + f.r, 0) / config.floors.length,
-  }), [config.id])
-
-  const louverYs = useMemo(() => {
-    const ys = [], gap = (MOD_H - N_LOUVERS * louverH) / (N_LOUVERS + 1)
-    for (let i = 0; i < N_LOUVERS; i++) ys.push(-MOD_H / 2 + gap * (i + 1) + louverH * (i + 0.5))
-    return ys
-  }, [])
-
-  const wallGroupRefs = useRef([])
-  const progressRef   = useRef(config.walls.map(() => 0))
-  const animStepRef   = useRef(animStep)
-  const configRef     = useRef(config)
-  const avgCRef       = useRef(avgC)
-  const avgRRef       = useRef(avgR)
-
-  useEffect(() => { animStepRef.current = animStep }, [animStep])
-  useEffect(() => {
-    configRef.current = config
-    avgCRef.current   = avgC
-    avgRRef.current   = avgR
-    progressRef.current = config.walls.map(() => 0)
-    wallGroupRefs.current = []
-  }, [config.id, avgC, avgR])
-
-  useFrame(() => {
-    const cfg = configRef.current
-    const aC  = avgCRef.current
-    const aR  = avgRRef.current
-    cfg.walls.forEach((w, i) => {
-      const grp = wallGroupRefs.current[i]
-      if (!grp) return
-      const target = i < animStepRef.current ? 1 : 0
-      if (progressRef.current[i] == null) progressRef.current[i] = 0
-      progressRef.current[i] = THREE.MathUtils.lerp(progressRef.current[i], target, 0.055)
-      const p  = progressRef.current[i]
-      const wp = modWallPos(w.c - aC, w.r - aR, w.lv, w.face)
-      const od = FACE_OUT[w.face]
-      grp.position.set(wp[0] + od[0] * (1 - p) * 14, wp[1], wp[2] + od[2] * (1 - p) * 14)
-    })
-  })
-
-  return (
-    <group>
-      {config.floors.map((f, i) => (
-        <mesh
-          key={`s${i}`}
-          geometry={slabGeo}
-          material={slabMat}
-          position={[(f.c - avgC) * MOD_UNIT, f.lv * MOD_H - 0.08, (f.r - avgR) * MOD_UNIT]}
-          receiveShadow castShadow
-        />
-      ))}
-      {config.walls.map((w, i) => (
-        <group
-          key={`w${i}`}
-          ref={el => { wallGroupRefs.current[i] = el }}
-          rotation={[0, FACE_ROT_Y[w.face], 0]}
-        >
-          {louverYs.map((ly, j) => (
-            <mesh key={j} geometry={louverGeo} material={louverMat} position={[0, ly, 0]} castShadow />
-          ))}
-        </group>
-      ))}
-    </group>
-  )
-}
-
-// ── catalogue: components sub-tab ─────────────────────────────────────────────
-function ComponentsCatalogue({ focusId, onFocus }) {
-  const [filter, setFilter] = useState('All')
-  const filtered = filter === 'All'
-    ? CATALOGUE_MODULES
-    : CATALOGUE_MODULES.filter(m => m.category === filter)
-
-  return (
-    <>
-      <div className="cat-filters">
-        {CAT_CATEGORIES.map(c => (
-          <button key={c} className={`cat-chip${filter === c ? ' active' : ''}`} onClick={() => setFilter(c)}>
-            {c}
-          </button>
-        ))}
-      </div>
-      <div className="cat-list">
-        {filtered.map(m => {
-          const isFocused = focusId === m.id
-          return (
-            <div key={m.id} className={`cat-card${isFocused ? ' focused' : ''}`} onClick={() => onFocus(isFocused ? null : m.id)}>
-              <div className="cat-card-top">
-                <span className="cat-icon" style={{ color: m.color }}>{m.icon}</span>
-                <div className="cat-card-info">
-                  <div className="cat-name">{m.name}</div>
-                  <div className="cat-cat">{m.category}</div>
-                </div>
-                {m.layers.length > 0 && <span className="cat-3d-badge">3D</span>}
-              </div>
-              <div className="cat-dims">{m.dims}</div>
-              <div className="cat-material">{m.material}</div>
-              <div className="cat-desc">{m.desc}</div>
-            </div>
-          )
-        })}
-      </div>
-      <div className="panel-footer">
-        <div className="stat">
-          {focusId
-            ? `Showing: ${CATALOGUE_MODULES.find(m => m.id === focusId)?.name}`
-            : `${filtered.length} module${filtered.length !== 1 ? 's' : ''}`}
-        </div>
-      </div>
-    </>
-  )
-}
-
-// ── catalogue: assembly sub-tab ───────────────────────────────────────────────
-function ModuleLibrary({ unitCount, onUnitCount, modConfigId, onModConfig, modStep, onPlay, onReset }) {
-  const available = MODULE_DEFS.filter(m => m.units === unitCount)
-  const selDef    = modConfigId ? MODULE_DEFS.find(m => m.id === modConfigId) : null
-  const total     = selDef ? selDef.walls.length : 0
-  const allIn     = modStep >= total && total > 0
-
-  return (
-    <div className="mod-lib">
-      <div className="mod-section">
-        <div className="mod-slabel">UNIT COUNT</div>
-        <div className="mod-unit-row">
-          {MOD_UNIT_COUNTS.map(n => (
-            <button
-              key={n}
-              className={`mod-unit-btn${unitCount === n ? ' active' : ''}`}
-              onClick={() => { onUnitCount(n); onModConfig(null) }}
-            >
-              {n}
-            </button>
-          ))}
-        </div>
-        <div className="mod-unit-hint">{unitCount} × 6 m units · {unitCount * MOD_UNIT * MOD_UNIT} m² max</div>
-      </div>
-
-      <div className="mod-section mod-configs-section">
-        <div className="mod-slabel">POSSIBLE LAYOUTS · {available.length}</div>
-        {available.length === 0 && (
-          <div className="mod-empty">No configurations for {unitCount} units yet.</div>
-        )}
-        {available.map(m => {
-          const isSel = modConfigId === m.id
-          return (
-            <div key={m.id} className={`mod-card${isSel ? ' active' : ''}`} onClick={() => onModConfig(isSel ? null : m.id)}>
-              <div className="mod-card-top">
-                <span className="mod-icon">{m.icon}</span>
-                <div className="mod-card-info">
-                  <div className="mod-name">{m.name}</div>
-                  <div className="mod-size">{m.size}</div>
-                </div>
-                <span className="mod-walls-badge">{m.wallSurfaces}W</span>
-              </div>
-              <div className="mod-desc">{m.desc}</div>
-            </div>
-          )
-        })}
-      </div>
-
-      {selDef ? (
-        <div className="mod-section mod-ctrl-section">
-          <div className="mod-slabel">ASSEMBLY · {modStep}/{total} walls</div>
-          <div className="mod-ctrl-row">
-            <button className="mod-btn mod-play" onClick={onPlay} disabled={allIn}>
-              {allIn ? '✓ Complete' : '▶ Animate'}
-            </button>
-            <button className="mod-btn mod-reset" onClick={onReset} title="Reset">↺</button>
-          </div>
-          <div className="mod-prog-bar">
-            <div className="mod-prog-fill" style={{ width: total > 0 ? `${(modStep / total) * 100}%` : '0%' }} />
-          </div>
-          <div className="mod-prog-txt">
-            {modStep === 0
-              ? `${total} walls · press ▶ to assemble`
-              : allIn ? 'Assembly complete · drag to inspect'
-              : `${modStep} / ${total} walls placed`}
-          </div>
-        </div>
-      ) : (
-        <div className="mod-idle">
-          <div className="mod-idle-icon">↗</div>
-          <div className="mod-idle-txt">Select a layout above<br />to see its 3D assembly</div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ── (dead old panel — replaced by new CataloguePanel above) ──────────────────
-function _DeadCataloguePanel({ focusId, onFocus, catSubTab, onSubTab, unitCount, onUnitCount, modConfigId, onModConfig, modStep, onModPlay, onModReset }) {
-  return (
-    <div className="panel cat-panel">
-      <div className="panel-header">
-        <div className="panel-logo">Third Home</div>
-        <div className="panel-subtitle">Module Catalogue</div>
-      </div>
-
-      <div className="cat-subtabs">
-        <button className={`cat-stab${catSubTab === 'components' ? ' active' : ''}`} onClick={() => onSubTab('components')}>
-          Components
-        </button>
-        <button className={`cat-stab${catSubTab === 'assembly' ? ' active' : ''}`} onClick={() => onSubTab('assembly')}>
-          Assembly
-        </button>
-      </div>
-
-      {catSubTab === 'components' ? (
-        <ComponentsCatalogue focusId={focusId} onFocus={onFocus} />
-      ) : (
-        <ModuleLibrary
-          unitCount={unitCount}
-          onUnitCount={onUnitCount}
-          modConfigId={modConfigId}
-          onModConfig={onModConfig}
-          modStep={modStep}
-          onPlay={onModPlay}
-          onReset={onModReset}
-        />
-      )}
-    </div>
-  )
-}
-
-/* END_DEAD_BLOCK */
-
 // ── layer grouping ────────────────────────────────────────────────────────────
 const LAYER_GROUPS = [
   {
@@ -2597,8 +1745,8 @@ function ModeToggle({ mode, onMode }) {
   )
 }
 
-// ── view-mode toggle (plan / iso / catalogue) ─────────────────────────────────
-function ViewToggle({ viewMode, setViewMode, showCatalogue = true }) {
+// ── view-mode toggle (plan / iso) ─────────────────────────────────────────────
+function ViewToggle({ viewMode, setViewMode }) {
   return (
     <div className="view-toggle">
       <button
@@ -2613,14 +1761,6 @@ function ViewToggle({ viewMode, setViewMode, showCatalogue = true }) {
       >
         Iso
       </button>
-      {showCatalogue && (
-        <button
-          className={`view-btn ${viewMode === 'catalogue' ? 'active' : ''}`}
-          onClick={() => setViewMode('catalogue')}
-        >
-          Catalogue
-        </button>
-      )}
     </div>
   )
 }
@@ -2764,16 +1904,6 @@ export default function App() {
   const [activeWallId, setActiveWallId] = useState(null)
   const assemblyTimer = useRef(null)
 
-  // catalogue state
-  const [catModConfigId,      setCatModConfigId]      = useState(null)
-  const [catModStep,          setCatModStep]          = useState(0)
-  const [catPreviewWallTypes, setCatPreviewWallTypes] = useState({})
-  const [catActiveWallId,     setCatActiveWallId]     = useState(null)
-  const [catLevelCount,       setCatLevelCount]       = useState(1)
-  const [catWallComboId,      setCatWallComboId]      = useState(null)
-  const [catInteriorComboId,  setCatInteriorComboId]  = useState(null)
-  const [catRoofEnabled,      setCatRoofEnabled]      = useState(false)
-  const [catRoofInflation,    setCatRoofInflation]    = useState(0)
   const [roofMorphData,       setRoofMorphData]       = useState(null)
   const [viewerStyleKey,      setViewerStyleKey]      = useState('arctic')
   const captureRef = useRef(null)
@@ -2952,32 +2082,7 @@ export default function App() {
     }
     img.src = sceneUrl
   }
-  const catModTimer = useRef(null)
-
-  // derive catalogue context: prefer live bkgSel, fall back to the active assembly booking
   const assemblyBooking = assemblyId ? bkgBookings.find(b => b.id === assemblyId) : null
-  const catCells = useMemo(() => {
-    if (bkgSel.size > 0) return bkgSel
-    if (assemblyBooking) return new Set(assemblyBooking.cells)
-    return new Set()
-  }, [bkgSel, assemblyBooking])
-  const catFloor = useMemo(() => {
-    if (bkgSel.size > 0) return bkgFloor
-    if (assemblyBooking) return assemblyBooking.floor
-    return bkgFloor
-  }, [bkgSel, bkgFloor, assemblyBooking])
-
-  // floors involved in preview: catFloor through catFloor+catLevelCount-1, capped at 5
-  const catPreviewFloors = useMemo(
-    () => Array.from({ length: catLevelCount }, (_, i) => Math.min(catFloor + i, 5)),
-    [catFloor, catLevelCount]
-  )
-
-  // perimeter walls on the base floor (used for animation step count + right panel)
-  const catPreviewWalls = useMemo(
-    () => catModConfigId && catCells.size > 0 ? getPerimeterWalls([...catCells], catFloor) : [],
-    [catModConfigId, catCells, catFloor]
-  )
 
   // per-cell positions in three.js space — fed to FloatingCubes for settle targets
   const floatSelCells = useMemo(() => {
@@ -3001,14 +2106,6 @@ export default function App() {
     setMode(m)
     if (m === 'editor') setViewMode('plan')
     if (m === 'viewer') setViewMode('iso')
-    setCatModConfigId(null)
-    setCatPreviewWallTypes({})
-    setCatActiveWallId(null)
-    setCatLevelCount(1)
-    clearInterval(catModTimer.current)
-    setCatModStep(0)
-    setCatWallComboId(null)
-    setCatInteriorComboId(null)
   }
 
   const handleViewMode = (vm) => {
@@ -3020,48 +2117,6 @@ export default function App() {
       setAssemblyStep(0)
       setActiveWallId(null)
     }
-    if (vm !== 'catalogue') {
-      setCatModConfigId(null)
-      setCatPreviewWallTypes({})
-      setCatActiveWallId(null)
-      setCatLevelCount(1)
-      clearInterval(catModTimer.current)
-      setCatModStep(0)
-      setCatWallComboId(null)
-      setCatInteriorComboId(null)
-    }
-  }
-
-  const handleModConfig = (id) => {
-    clearInterval(catModTimer.current)
-    setCatModConfigId(id)
-    setCatModStep(0)
-    setCatPreviewWallTypes({})
-    setCatActiveWallId(null)
-    setCatWallComboId(null)
-    setCatInteriorComboId(null)
-  }
-
-  const handleModPlay = () => {
-    if (!catModConfigId) return
-    clearInterval(catModTimer.current)
-    const total = catPreviewWalls.length
-    let step = catModStep
-    catModTimer.current = setInterval(() => {
-      step++
-      setCatModStep(step)
-      if (step >= total) clearInterval(catModTimer.current)
-    }, 520)
-  }
-
-  const handleModReset = () => {
-    clearInterval(catModTimer.current)
-    setCatModStep(0)
-  }
-
-  const setCatPreviewWallType = (wallId, type) => {
-    setCatPreviewWallTypes(prev => ({ ...prev, [wallId]: type }))
-    setCatWallComboId(null)
   }
 
   const handleSetBookingRoof = (bookingId, enabled, inflation) => {
@@ -3070,33 +2125,6 @@ export default function App() {
       const updated = { ...b, roofEnabled: enabled, roofInflation: inflation }
       bkgUpdate(updated)
       return updated
-    }))
-  }
-
-  const applyWallCombo = (comboId) => {
-    const combo = WALL_COMBOS.find(c => c.id === comboId)
-    if (!combo || catPreviewWalls.length === 0) return
-    setCatWallComboId(comboId)
-    const extTypes = Object.fromEntries(
-      catPreviewWalls.map(w => [w.id, combo.sides[w.side] || 'solid'])
-    )
-    setCatPreviewWallTypes(prev => ({
-      ...Object.fromEntries(Object.entries(prev).filter(([k]) => k.startsWith('int-'))),
-      ...extTypes,
-    }))
-  }
-
-  const applyInteriorCombo = (comboId) => {
-    const combo = INTERIOR_COMBOS.find(c => c.id === comboId)
-    if (!combo) return
-    setCatInteriorComboId(comboId)
-    const intWalls = getInteriorWalls([...catCells], catFloor)
-    const intTypes = Object.fromEntries(
-      intWalls.map((w, i) => [`int-${w.id}`, combo.filter(w, i)])
-    )
-    setCatPreviewWallTypes(prev => ({
-      ...Object.fromEntries(Object.entries(prev).filter(([k]) => !k.startsWith('int-'))),
-      ...intTypes,
     }))
   }
 
@@ -3174,7 +2202,6 @@ export default function App() {
     viewer:    'Drag to orbit · scroll to zoom · right-drag to pan',
     plan:      'Plan view · scroll to zoom · drag to pan · no rotation',
     iso:       'Iso view · drag to orbit · scroll to zoom · right-drag to pan',
-    catalogue: 'Catalogue · select cells in Plan / Iso first, then choose a layout',
   }
   const activeHint = mode === 'viewer'
     ? (viewMode === 'plan' ? hintText.plan : hintText.iso)
@@ -3184,7 +2211,6 @@ export default function App() {
   // so OrbitControls always re-attaches to the correct camera type
   const cameraKey = `${mode}-${viewMode}`
 
-  const isCatView    = mode === 'editor' && viewMode === 'catalogue'
   const viewerStyle  = VIEWER_STYLES[viewerStyleKey]  || VIEWER_STYLES.arctic
   const editorScheme = 'cyber'
 
@@ -3216,19 +2242,19 @@ export default function App() {
           <SceneCamera key={cameraKey} mode={mode} viewMode={viewMode} />
           <CanvasCapture captureRef={captureRef} />
 
-          {mode === 'editor' && !isCatView && <EditorGrid />}
+          {mode === 'editor' && <EditorGrid />}
 
           {mode === 'editor' && (
             <FloatingCubes selCells={floatSelCells} assembling={!!assemblyId} />
           )}
 
-          {mode === 'editor' && !isCatView && !assemblyId && (
+          {mode === 'editor' && !assemblyId && (
             STAY_ROOM_FLOOR_SET.has(bkgFloor)
               ? <StayRoomCells floor={bkgFloor} sel={bkgSel} bookings={bkgBookings} onToggle={toggleBkgCell} scheme={editorScheme} />
               : <BookingCells  floor={bkgFloor} sel={bkgSel} bookings={bkgBookings} onToggle={toggleBkgCell} scheme={editorScheme} />
           )}
 
-          {mode === 'editor' && !isCatView && assemblyBooking && assemblyId && (
+          {mode === 'editor' && assemblyBooking && assemblyId && (
             <AssemblyGeometry
               key={assemblyId}
               booking={assemblyBooking}
@@ -3241,20 +2267,6 @@ export default function App() {
               roofInflation={assemblyBooking.roofInflation ?? 0}
             />
           )}
-
-          {isCatView && catModConfigId && catCells.size > 0 && catPreviewFloors.map(floorIdx => (
-            <AssemblyGeometry
-              key={`cat-${catModConfigId}-${floorIdx}`}
-              booking={{ id: `cat-preview-${floorIdx}`, cells: [...catCells], floor: floorIdx }}
-              wallTypesMap={catPreviewWallTypes}
-              activeWallId={catActiveWallId}
-              onSelectWall={setCatActiveWallId}
-              animStep={catModStep}
-              roofEnabled={catRoofEnabled}
-              roofMorphData={roofMorphData}
-              roofInflation={catRoofInflation}
-            />
-          ))}
 
           {/* viewer mode: render every booking's assembled walls + roofs */}
           {mode === 'viewer' && bkgBookings.map(b => (
@@ -3275,7 +2287,7 @@ export default function App() {
             <Model
               data={data}
               visible={visible}
-              activeFloor={isCatView ? BKG_FLOOR_KEYS[catFloor] : activeFloor}
+              activeFloor={activeFloor}
               focusLayers={null}
               mode={mode}
               hovered={hovered}
@@ -3292,7 +2304,7 @@ export default function App() {
         </Canvas>
       </div>
 
-      {data && (mode === 'viewer' || (!isCatView && mode === 'editor')) && (
+      {data && (mode === 'viewer' || mode === 'editor') && (
         <>
           <Panel
             layers={layers}
@@ -3313,45 +2325,7 @@ export default function App() {
         </>
       )}
 
-      {data && isCatView && (
-        <CataloguePanel
-          catFloor={catFloor}
-          catCells={catCells}
-          levelCount={catLevelCount}
-          onLevelCount={setCatLevelCount}
-          modConfigId={catModConfigId}
-          onModConfig={handleModConfig}
-        />
-      )}
-
-      {data && isCatView && (
-        <CatalogueRightPanel
-          modConfigId={catModConfigId}
-          onClose={() => handleModConfig(null)}
-          catFloor={catFloor}
-          catCells={catCells}
-          levelCount={catLevelCount}
-          assemblyWalls={catPreviewWalls}
-          animStep={catModStep}
-          wallTypes={catPreviewWallTypes}
-          activeWallId={catActiveWallId}
-          onPlay={handleModPlay}
-          onReset={handleModReset}
-          onSetWallType={setCatPreviewWallType}
-          onSelectWall={setCatActiveWallId}
-          wallComboId={catWallComboId}
-          onApplyCombo={applyWallCombo}
-          interiorComboId={catInteriorComboId}
-          onApplyInteriorCombo={applyInteriorCombo}
-          roofEnabled={catRoofEnabled}
-          roofInflation={catRoofInflation}
-          onToggleRoof={() => setCatRoofEnabled(v => !v)}
-          onSetRoofInflation={setCatRoofInflation}
-          hasMorphData={!!roofMorphData}
-        />
-      )}
-
-      {mode === 'editor' && !isCatView && data && (
+      {mode === 'editor' && data && (
         <BookingRightPanel
           floor={bkgFloor}
           onFloor={switchBkgFloor}
@@ -3388,7 +2362,6 @@ export default function App() {
       <ViewToggle
         viewMode={viewMode}
         setViewMode={handleViewMode}
-        showCatalogue={mode === 'editor'}
       />
 
       {mode === 'viewer' && (

@@ -3,6 +3,6 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig(({ mode }) => ({
   plugins: [react()],
-  base: mode === 'gh-pages' ? '/deployables-webapp/' : '/',
-  server: { port: 5174, host: '0.0.0.0' },
+  base: mode === 'gh-pages' ? '/third-home-interface/' : '/',
+  server: { port: 5180, host: '0.0.0.0' },
 }))
