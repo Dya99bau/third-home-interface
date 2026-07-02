@@ -2418,32 +2418,8 @@ const LAYER_GROUPS = [
     keys: ['Floor G', 'floor 1', 'floor 2', 'floor 3', 'floor 4', 'floor 5'],
   },
   {
-    title: 'Stay Rooms',
-    keys: ['stayroom floor 1', 'stayroom floor 2', 'stayroom floor 3'],
-  },
-  {
-    title: 'Deployable Modules',
-    keys: ['deployable model 3', 'benches module', 'balconies module', 'OAT module'],
-  },
-  {
-    title: 'Structure',
-    keys: ['walls 2', 'walls 3', 'columns'],
-  },
-  {
-    title: 'Circulation',
-    keys: ['stairs', 'staircase', 'lift'],
-  },
-  {
-    title: 'Services',
-    keys: ['kitchen floor', 'service'],
-  },
-  {
-    title: 'Interior',
-    keys: ['furniture'],
-  },
-  {
-    title: 'Landscaping',
-    keys: ['green pots'],
+    title: 'Design',
+    keys: ['stairs', 'deployable model 3', 'benches module', 'balconies module', 'OAT module'],
   },
 ]
 
@@ -2659,15 +2635,7 @@ function Panel({ layers, visible, setVisible, activeFloor, setActiveFloor, onFlo
 
   const toggleAll = () => {
     const next = {}
-    layers.forEach((l) => (next[l.layer] = !allNonFloorOn))
-    setVisible((v) => ({ ...v, ...next }))
-  }
-
-  const toggleGroup = (keys) => {
-    const groupLayers = layers.filter((l) => keys.includes(l.layer))
-    const anyOn = groupLayers.some((l) => visible[l.layer] !== false)
-    const next = {}
-    groupLayers.forEach((l) => (next[l.layer] = !anyOn))
+    nonFloorLayers.forEach((l) => (next[l.layer] = !allNonFloorOn))
     setVisible((v) => ({ ...v, ...next }))
   }
 
@@ -2677,6 +2645,14 @@ function Panel({ layers, visible, setVisible, activeFloor, setActiveFloor, onFlo
   const toHex = (c) => c
     ? `#${c[0].toString(16).padStart(2,'0')}${c[1].toString(16).padStart(2,'0')}${c[2].toString(16).padStart(2,'0')}`
     : '#888'
+
+  const toggleGroup = (keys) => {
+    const groupLayers = layers.filter((l) => keys.includes(l.layer))
+    const anyOn = groupLayers.some((l) => visible[l.layer] !== false)
+    const next = {}
+    groupLayers.forEach((l) => (next[l.layer] = !anyOn))
+    setVisible((v) => ({ ...v, ...next }))
+  }
 
   return (
     <div className={`panel${collapsed ? ' panel-collapsed' : ''}`}>
@@ -2712,14 +2688,13 @@ function Panel({ layers, visible, setVisible, activeFloor, setActiveFloor, onFlo
               </button>
 
               {present.map((key) => {
-                const c   = colorMap[key]
-                const hex = toHex(c)
+                const hex = toHex(colorMap[key])
 
                 if (isFloorGrp) {
-                  const isSel    = activeFloor === key
-                  const isDim    = activeFloor && activeFloor !== key
-                  const flIdx    = BKG_FLOOR_KEYS.indexOf(key)
-                  const hasSR    = STAYROOM_FLOORS.has(flIdx)
+                  const isSel = activeFloor === key
+                  const isDim = activeFloor && activeFloor !== key
+                  const flIdx = BKG_FLOOR_KEYS.indexOf(key)
+                  const hasSR = STAYROOM_FLOORS.has(flIdx)
                   return (
                     <div
                       key={key}
@@ -2737,7 +2712,7 @@ function Panel({ layers, visible, setVisible, activeFloor, setActiveFloor, onFlo
                   )
                 }
 
-                // non-floor groups — normal on/off toggle
+                // Design group — normal on/off toggle
                 const on = visible[key] !== false
                 return (
                   <div
@@ -2760,7 +2735,7 @@ function Panel({ layers, visible, setVisible, activeFloor, setActiveFloor, onFlo
         <div className="stat">
           {activeFloor
             ? `Showing: ${pretty(activeFloor)}`
-            : `${layers.filter((l) => visible[l.layer] !== false).length} / ${layers.length} layers visible`}
+            : `${nonFloorLayers.filter((l) => visible[l.layer] !== false).length} / ${nonFloorLayers.length} other layers visible`}
         </div>
       </div>
     </div>
@@ -3175,16 +3150,8 @@ export default function App() {
       .then((r) => r.json())
       .then((d) => {
         setData(d)
-        // these layers clutter the booking/selection view — start hidden, user can toggle on
-        const OFF_BY_DEFAULT = new Set([
-          'walls 2', 'walls 3',
-          'stairs', 'staircase', 'lift',
-          'deployable model 3', 'benches module', 'balconies module', 'OAT module',
-          'stayroom floor 1', 'stayroom floor 2', 'stayroom floor 3',
-          'service',
-        ])
         const init = {}
-        d.statics.forEach((s) => (init[s.layer] = !OFF_BY_DEFAULT.has(s.layer)))
+        d.statics.forEach((s) => (init[s.layer] = true))
         setVisible(init)
       })
   }, [])
