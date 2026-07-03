@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, PerspectiveCamera, OrthographicCamera, Center, Html } from '@react-three/drei'
 import * as THREE from 'three'
+import Screensaver from './Screensaver'
 
 // ── geometry helpers ──────────────────────────────────────────────────────────
 function buildGeometry(part) {
@@ -191,6 +192,9 @@ function SceneCamera({ mode, viewMode }) {
 // ── booking: constants ────────────────────────────────────────────────────────
 // Real floor footprint 45.38 × 30.18 m → 9 cols × 6 rows at 5 m/cell
 const BKG_KEY  = 'wolfsburg_deployable_bookings'
+const SNAP_KEY      = 'rewire_snapshots'
+const SNAP_MAX      = 12
+const INACTIVITY_MS = 2 * 60 * 1000
 const BKG_ROWS = 6    // 6 × 5 m = 30 m depth
 const BKG_COLS = 9    // 9 × 5 m = 45 m width
 const BKG_M    = 5    // metres per cell
@@ -538,7 +542,7 @@ function StayRoomCells({ floor, sel, bookings, onToggle, scheme = 'cyber' }) {
 
 // ── canvas capture helper (inside Canvas) ─────────────────────────────────────
 function CanvasCapture({ captureRef }) {
-  const { gl, scene, camera } = useThree()
+  const { gl, scene, camera, size } = useThree()
   useEffect(() => {
     captureRef.current = {
       capture: (format) => {
@@ -546,9 +550,41 @@ function CanvasCapture({ captureRef }) {
         return gl.domElement.toDataURL(format === 'jpg' ? 'image/jpeg' : 'image/png', 0.95)
       },
       camera,
+      captureIso: () => {
+        const scale  = 3
+        const capW   = Math.round(size.width  * scale)
+        const capH   = Math.round(size.height * scale)
+        const savedW = gl.domElement.width
+        const savedH = gl.domElement.height
+        gl.setSize(capW, capH, false)
+
+        const zoom = 10
+        const isoCam = new THREE.OrthographicCamera(
+          -size.width  / (2 * zoom), size.width  / (2 * zoom),
+           size.height / (2 * zoom), -size.height / (2 * zoom),
+          0.1, 8000
+        )
+        isoCam.position.set(-55, 45, 55)
+        isoCam.lookAt(0, 0, 0)
+        isoCam.updateProjectionMatrix()
+
+        // Show only the dedicated screensaver scene group + lights; hide everything else
+        const savedVis = []
+        scene.children.forEach(child => {
+          savedVis.push([child, child.visible])
+          child.visible = !!(child.isLight || child.name === 'ss-scene')
+        })
+
+        gl.render(scene, isoCam)
+        const url = gl.domElement.toDataURL('image/png')
+
+        savedVis.forEach(([child, v]) => { child.visible = v })
+        gl.setSize(savedW, savedH, false)
+        return url
+      },
     }
     return () => { captureRef.current = null }
-  }, [gl, scene, camera, captureRef])
+  }, [gl, scene, camera, size, captureRef])
   return null
 }
 
@@ -844,6 +880,74 @@ function AssemblyGeometry({ booking, wallTypesMap, activeWallId, onSelectWall, a
           floorIdx={floorIdx}
         />
       )}
+    </group>
+  )
+}
+
+// ── screensaver: static assembly scene (always in Canvas, hidden until ISO capture) ─
+function SSBookingMesh({ booking, wallTypesMap }) {
+  const floorIdx = booking.floor
+  const cellsKey = booking.cells.join(',')
+  const walls    = useMemo(() => getPerimeterWalls(booking.cells, floorIdx), [cellsKey, floorIdx])
+  const intWalls = useMemo(() => getInteriorWalls(booking.cells,  floorIdx), [cellsKey, floorIdx])
+
+  const hGeo  = useMemo(() => new THREE.BoxGeometry(BKG_M, FLOOR_H_M, 0.14), [])
+  const vGeo  = useMemo(() => new THREE.BoxGeometry(0.14, FLOOR_H_M, BKG_M), [])
+  const flGeo = useMemo(() => new THREE.BoxGeometry(BKG_M - 0.06, 0.18, BKG_M - 0.06), [])
+
+  const matSolid   = useMemo(() => new THREE.MeshStandardMaterial({ color: '#FFE600', emissive: '#FFE600', emissiveIntensity: 0.28, roughness: 0.60, metalness: 0.05 }), [])
+  const matGlazed  = useMemo(() => new THREE.MeshStandardMaterial({ color: '#4CC9F0', transparent: true, opacity: 0.40, roughness: 0, metalness: 0.2, depthWrite: false, side: THREE.DoubleSide }), [])
+  const matCurtain = useMemo(() => new THREE.MeshStandardMaterial({ color: '#c8a96e', transparent: true, opacity: 0.50, roughness: 0.9, depthWrite: false, side: THREE.DoubleSide }), [])
+  const matFloor   = useMemo(() => new THREE.MeshStandardMaterial({ color: '#a07800', emissive: '#FFE600', emissiveIntensity: 0.35, roughness: 0.85 }), [])
+
+  return (
+    <>
+      {booking.cells.map(cellId => {
+        const [r, c] = cellId.split('-').map(Number)
+        const [cx, cy, cz] = bkgPos(r, c, floorIdx)
+        return <mesh key={cellId} geometry={flGeo} material={matFloor} position={[cx, cy - 0.05, cz]} />
+      })}
+
+      {walls.map(wall => {
+        const type = wallTypesMap[wall.id] || 'solid'
+        if (type === 'open') return null
+        return (
+          <mesh
+            key={wall.id}
+            geometry={wall.geo === 'h' ? hGeo : vGeo}
+            material={type === 'glazed' ? matGlazed : type === 'curtain' ? matCurtain : matSolid}
+            position={wall.pos}
+          />
+        )
+      })}
+
+      {intWalls.map(w => {
+        const type = wallTypesMap[`int-${w.id}`] || 'open'
+        if (type === 'open') return null
+        return (
+          <mesh
+            key={`int-${w.id}`}
+            geometry={w.geo === 'h' ? hGeo : vGeo}
+            material={type === 'glazed' ? matGlazed : type === 'curtain' ? matCurtain : matSolid}
+            position={w.pos}
+          />
+        )
+      })}
+    </>
+  )
+}
+
+function ScreensaverScene({ bookings, wallTypes }) {
+  if (!bookings.length) return null
+  return (
+    <group name="ss-scene">
+      {bookings.map(b => (
+        <SSBookingMesh
+          key={b.id}
+          booking={b}
+          wallTypesMap={wallTypes[b.id] || {}}
+        />
+      ))}
     </group>
   )
 }
@@ -1908,6 +2012,80 @@ export default function App() {
   const [viewerStyleKey,      setViewerStyleKey]      = useState('arctic')
   const captureRef = useRef(null)
 
+  const [screensaverActive, setScreensaverActive] = useState(false)
+  const inactivityTimerRef = useRef(null)
+  const screensaverRef     = useRef(false)
+  const captureDebounceRef = useRef(null)
+  const bkgBookingsRef     = useRef(bkgBookings)
+  useEffect(() => { bkgBookingsRef.current = bkgBookings }, [bkgBookings])
+
+  const captureAndSaveSnapshot = useCallback(() => {
+    if (!captureRef.current || bkgBookingsRef.current.length === 0) return
+    try {
+      const newFrameUrl = captureRef.current.captureIso()
+      const newImg = new Image()
+      newImg.onload = () => {
+        const maxW  = 3840
+        const scale = Math.min(1, maxW / newImg.width)
+        const W     = Math.round(newImg.width  * scale)
+        const H     = Math.round(newImg.height * scale)
+
+        const commit = (compositeUrl) => {
+          try {
+            const existing = JSON.parse(localStorage.getItem(SNAP_KEY) || '[]')
+            const arr      = Array.isArray(existing) ? existing : []
+            const updated  = [...arr, compositeUrl].slice(-SNAP_MAX)
+            localStorage.setItem(SNAP_KEY, JSON.stringify(updated))
+          } catch {}
+        }
+
+        const render = (prevUrl) => {
+          const off = document.createElement('canvas')
+          off.width = W; off.height = H
+          const ctx = off.getContext('2d')
+          if (prevUrl) {
+            const prev = new Image()
+            prev.onload = () => {
+              ctx.drawImage(prev, 0, 0, W, H)
+              ctx.globalCompositeOperation = 'screen'
+              ctx.drawImage(newImg, 0, 0, W, H)
+              ctx.globalCompositeOperation = 'source-over'
+              commit(off.toDataURL('image/jpeg', 0.97))
+            }
+            prev.src = prevUrl
+          } else {
+            ctx.drawImage(newImg, 0, 0, W, H)
+            commit(off.toDataURL('image/jpeg', 0.97))
+          }
+        }
+
+        try {
+          const existing = JSON.parse(localStorage.getItem(SNAP_KEY) || '[]')
+          const arr      = Array.isArray(existing) ? existing : []
+          render(arr.length > 0 ? arr[arr.length - 1] : null)
+        } catch { render(null) }
+      }
+      newImg.src = newFrameUrl
+    } catch {}
+  }, [])
+
+  const debouncedCapture = useCallback((delay = 1500) => {
+    clearTimeout(captureDebounceRef.current)
+    captureDebounceRef.current = setTimeout(captureAndSaveSnapshot, delay)
+  }, [captureAndSaveSnapshot])
+
+  const resetInactivity = useCallback(() => {
+    clearTimeout(inactivityTimerRef.current)
+    if (screensaverRef.current) {
+      screensaverRef.current = false
+      setScreensaverActive(false)
+    }
+    inactivityTimerRef.current = setTimeout(() => {
+      screensaverRef.current = true
+      setScreensaverActive(true)
+    }, INACTIVITY_MS)
+  }, [])
+
   const handleDownload = (format) => {
     if (!captureRef.current) return
     const { capture, camera } = captureRef.current
@@ -2198,6 +2376,42 @@ export default function App() {
       .catch(() => {})
   }, [])
 
+  // inactivity → screensaver
+  useEffect(() => {
+    const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'wheel']
+    events.forEach(e => document.addEventListener(e, resetInactivity, { passive: true }))
+    resetInactivity()
+    return () => {
+      events.forEach(e => document.removeEventListener(e, resetInactivity))
+      clearTimeout(inactivityTimerRef.current)
+    }
+  }, [resetInactivity])
+
+  // capture on booking confirmed; clear + rebuild when booking cancelled
+  const prevBookingCountRef = useRef(bkgBookings.length)
+  useEffect(() => {
+    if (bkgBookings.length > prevBookingCountRef.current) {
+      debouncedCapture(1000)
+    } else if (bkgBookings.length < prevBookingCountRef.current) {
+      localStorage.removeItem(SNAP_KEY)
+      if (bkgBookings.length > 0) debouncedCapture(800)
+    }
+    prevBookingCountRef.current = bkgBookings.length
+  }, [bkgBookings.length, debouncedCapture])
+
+  // capture on wall type changes
+  useEffect(() => {
+    const hasWalls = Object.keys(wallTypes).some(k => Object.keys(wallTypes[k] || {}).length > 0)
+    if (hasWalls) debouncedCapture(2000)
+  }, [wallTypes, debouncedCapture])
+
+  // capture when assembly animation finishes
+  useEffect(() => {
+    if (assemblyStep > 0 && assemblyWalls.length > 0 && assemblyStep >= assemblyWalls.length) {
+      debouncedCapture(600)
+    }
+  }, [assemblyStep, assemblyWalls.length, debouncedCapture])
+
   const hintText = {
     viewer:    'Drag to orbit · scroll to zoom · right-drag to pan',
     plan:      'Plan view · scroll to zoom · drag to pan · no rotation',
@@ -2216,6 +2430,23 @@ export default function App() {
 
   return (
     <div className="app" data-mode={mode} data-view={viewMode}>
+
+      {screensaverActive && <Screensaver onDismiss={resetInactivity} />}
+
+      <button
+        className="ss-dev-toggle"
+        onClick={() => {
+          if (screensaverRef.current) {
+            resetInactivity()
+          } else {
+            clearTimeout(inactivityTimerRef.current)
+            screensaverRef.current = true
+            setScreensaverActive(true)
+          }
+        }}
+      >
+        {screensaverActive ? '✕ Exit Screensaver' : '⏸ Test Screensaver'}
+      </button>
 
       {/* ── Main canvas ── */}
       <div className="canvas-wrap">
@@ -2241,6 +2472,7 @@ export default function App() {
           {/* key forces full remount on every mode/viewMode change */}
           <SceneCamera key={cameraKey} mode={mode} viewMode={viewMode} />
           <CanvasCapture captureRef={captureRef} />
+          <ScreensaverScene bookings={bkgBookings} wallTypes={wallTypes} />
 
           {mode === 'editor' && <EditorGrid />}
 
