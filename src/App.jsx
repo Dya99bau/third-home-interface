@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, PerspectiveCamera, OrthographicCamera, Center, Html } from '@react-three/drei'
 import * as THREE from 'three'
+import Screensaver from './Screensaver'
 
 // ── geometry helpers ──────────────────────────────────────────────────────────
 function buildGeometry(part) {
@@ -191,6 +192,9 @@ function SceneCamera({ mode, viewMode }) {
 // ── booking: constants ────────────────────────────────────────────────────────
 // Real floor footprint 45.38 × 30.18 m → 9 cols × 6 rows at 5 m/cell
 const BKG_KEY  = 'wolfsburg_deployable_bookings'
+const SNAP_KEY = 'rewire_snapshots'
+const SNAP_MAX = 8
+const IDLE_MS  = 60_000
 const BKG_ROWS = 6    // 6 × 5 m = 30 m depth
 const BKG_COLS = 9    // 9 × 5 m = 45 m width
 const BKG_M    = 5    // metres per cell
@@ -1908,6 +1912,11 @@ export default function App() {
   const [viewerStyleKey,      setViewerStyleKey]      = useState('arctic')
   const captureRef = useRef(null)
 
+  const [showSS, setShowSS] = useState(false)
+  const idleTimerRef        = useRef(null)
+  const showSSRef           = useRef(false)
+  useEffect(() => { showSSRef.current = showSS }, [showSS])
+
   const handleDownload = (format) => {
     if (!captureRef.current) return
     const { capture, camera } = captureRef.current
@@ -2198,6 +2207,35 @@ export default function App() {
       .catch(() => {})
   }, [])
 
+  useEffect(() => {
+    const saveSnap = () => {
+      if (!captureRef.current) return
+      try {
+        const url  = captureRef.current.capture('jpg')
+        const prev = (() => { try { return JSON.parse(localStorage.getItem(SNAP_KEY) || '[]') } catch { return [] } })()
+        localStorage.setItem(SNAP_KEY, JSON.stringify([...prev, url].slice(-SNAP_MAX)))
+      } catch {}
+    }
+
+    const onActivity = () => {
+      if (showSSRef.current) setShowSS(false)
+      clearTimeout(idleTimerRef.current)
+      idleTimerRef.current = setTimeout(() => {
+        saveSnap()
+        setShowSS(true)
+      }, IDLE_MS)
+    }
+
+    const events = ['mousemove', 'mousedown', 'touchstart', 'keydown']
+    events.forEach(e => window.addEventListener(e, onActivity, { passive: true }))
+    onActivity()
+
+    return () => {
+      clearTimeout(idleTimerRef.current)
+      events.forEach(e => window.removeEventListener(e, onActivity))
+    }
+  }, [])
+
   const hintText = {
     viewer:    'Drag to orbit · scroll to zoom · right-drag to pan',
     plan:      'Plan view · scroll to zoom · drag to pan · no rotation',
@@ -2216,6 +2254,8 @@ export default function App() {
 
   return (
     <div className="app" data-mode={mode} data-view={viewMode}>
+
+      {showSS && <Screensaver onDismiss={() => setShowSS(false)} />}
 
       {/* ── Main canvas ── */}
       <div className="canvas-wrap">
