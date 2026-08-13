@@ -1,64 +1,4 @@
-export type Role = "guest" | "member" | "keeper";
-
-export interface Proposal {
-  id: string;
-  title: string;
-  description: string;
-  proposedBy: string;
-  role: Role;
-  category: "daily" | "community" | "structural";
-  status: "open" | "consented" | "blocked" | "withdrawn";
-  createdAt: string;
-  deadlineAt: string;
-  silentConsenters: number;
-  blocks: Block[];
-  concerns: Concern[];
-}
-
-export interface Block {
-  by: string;
-  reason: string;
-}
-
-export interface Concern {
-  by: string;
-  text: string;
-}
-
-export interface Event {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  time: string;
-  host: string;
-  category: "cultural" | "food" | "governance" | "learning" | "social";
-  spots: number | null;
-  enrolled: string[];
-  openTo: Role[];
-}
-
-export interface BedSpace {
-  id: string;
-  type: "single" | "double" | "bunk";
-  name: string;
-  description: string;
-  available: boolean;
-  priceGuest: number;
-  priceMember: number;
-  amenities: string[];
-}
-
-export interface Person {
-  id: string;
-  name: string;
-  role: Role;
-  since: string;
-  contributions: string[];
-  avatar: string;
-}
-
-export const proposals: Proposal[] = [
+export const proposals = [
   {
     id: "p1",
     title: "Add a composting bin to the kitchen area",
@@ -144,7 +84,7 @@ export const proposals: Proposal[] = [
   },
 ];
 
-export const events: Event[] = [
+export const events = [
   {
     id: "e1",
     title: "Wednesday Film Night — Paterson",
@@ -212,7 +152,7 @@ export const events: Event[] = [
   },
 ];
 
-export const bedSpaces: BedSpace[] = [
+export const bedSpaces = [
   {
     id: "s1",
     type: "single",
@@ -315,7 +255,7 @@ export const bedSpaces: BedSpace[] = [
   },
 ];
 
-export const people: Person[] = [
+export const people = [
   {
     id: "u1",
     name: "Marta",

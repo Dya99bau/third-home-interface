@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #FAF7F2;
-  --foreground: #2C1A0E;
+  --gov-background: #FAF7F2;
+  --gov-foreground: #2C1A0E;
   --cream: #FAF7F2;
   --warm-brown: #2C1A0E;
   --terracotta: #C5603B;
@@ -15,8 +15,8 @@
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--gov-background);
+  --color-foreground: var(--gov-foreground);
   --color-cream: var(--cream);
   --color-warm-brown: var(--warm-brown);
   --color-terracotta: var(--terracotta);
@@ -28,17 +28,18 @@
   --color-muted: var(--muted);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
+/* Scoped, not global -- the rest of the app (editor/viewer/exhibition modes)
+   keeps its own dark space theme. Only .gov-root subtrees (the ported
+   governance pages) get HOME's cream/terracotta look. */
+.gov-root {
+  background: var(--gov-background);
+  color: var(--gov-foreground);
   font-family: Georgia, 'Times New Roman', serif;
+  min-height: 100vh;
 }
-
-* {
+.gov-root * {
   box-sizing: border-box;
 }
-
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--sand); }
-::-webkit-scrollbar-thumb { background: var(--sand-dark); border-radius: 3px; }
+.gov-root ::-webkit-scrollbar { width: 6px; }
+.gov-root ::-webkit-scrollbar-track { background: var(--sand); }
+.gov-root ::-webkit-scrollbar-thumb { background: var(--sand-dark); border-radius: 3px; }

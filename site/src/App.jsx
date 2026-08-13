@@ -6,6 +6,7 @@ import * as THREE from 'three'
 import ExhibitionScene from './ExhibitionScene'
 import { loadModelAsStatics, loadRoofMorph } from './loadModel'
 import Screensaver from './Screensaver'
+import GovernanceApp from './governance/GovernanceApp'
 
 // ── geometry helpers ──────────────────────────────────────────────────────────
 function buildGeometry(part) {
@@ -1853,9 +1854,15 @@ function ModeToggle({ mode, onMode }) {
       >
         Exhibition
       </button>
-      <a className="mode-btn" href="/deployables/">
+      <a className="mode-btn" href="./deployables/">
         Deployables
       </a>
+      <button
+        className={`mode-btn ${mode.startsWith('gov-') ? 'active' : ''}`}
+        onClick={() => onMode('gov-home')}
+      >
+        HOME
+      </button>
     </div>
   )
 }
@@ -2439,6 +2446,10 @@ export default function App() {
 
   if (mode === 'exhibition') {
     return <ExhibitionScene onBack={() => handleMode('editor')} />
+  }
+
+  if (mode.startsWith('gov-')) {
+    return <GovernanceApp mode={mode} onNavigate={handleMode} />
   }
 
   return (
