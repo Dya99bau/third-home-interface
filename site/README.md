@@ -74,6 +74,8 @@ This also builds the nested `deployables/` app automatically (chained in the `bu
 
 **3D geometry and photographs**: all original team work — Rhino models, renders, material reference images, and site/exhibition photography by Divya Venkatraman, Samhitha Chandrashekar, and Ziad Ismaeil.
 
+**Base map** (`materials/figure-ground-map.pdf`): building footprints © OpenStreetMap contributors, available under the Open Database License (ODbL) — https://www.openstreetmap.org/copyright. Analysis overlay (walking radii, site highlight, routes) is the team's own.
+
 ## Permissions
 
 We agree that InfAU may republish this work under a university account or domain —
