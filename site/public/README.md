@@ -13,7 +13,7 @@ AI-assisted development shaped how interactive the interface became, turning the
 
 ## The urban issue
 
-Wolfsburg is a shift-based company town: it empties after factory hours, as commuters leave and public life fades. Third Home responds with Ray Oldenburg's concept of a "third place" — a space that is neither home nor workplace — giving commuters and neighbouring residents a reason to stay into the evening rather than a reason to leave.
+Wolfsburg is a company town built around Volkswagen's shift schedule: when factory hours end, commuters leave and public life empties out with them. Outside of work and home, there's little in the city that gives workers, neighbours, or newcomers a reason to stay into the evening rather than leave.
 
 ## How to use this site
 
@@ -33,10 +33,10 @@ Wolfsburg is a shift-based company town: it empties after factory hours, as comm
 
 ## Contents
 
-- `materials/` — personas descriptions (PDF). A site map and floor plans were referenced in the original brief but confirmed not to exist anywhere in the project.
+- `materials/` — personas descriptions and a 300 dpi scan of the printed exhibition sheets showing the building versions (both PDF), viewable at `materials/index.html`. A site map and floor plans were referenced in the original brief but confirmed not to exist anywhere in the project.
 - `presentation/` — 9 slides captured from the live presentation site (third-home-wolfsburg.vercel.app), viewable at `presentation/index.html`.
 - `deployables/` — a second, separately-built 3D deployable-module design tool (forked from a sibling studio project, Rewire Wolfsburg, and rebranded here).
-- Governance/social section (Home, Governance, Events, Stay, Community, Open Studio, Configure) — ported from what was originally a separate app, ` home-app`, now merged directly into this site.
+- Governance/social section (Home, Governance, Events, Stay, Community, Open Studio, Configure) — ported from what was originally a separate app, `home-app`, now merged directly into this site.
 
 ## How to run it
 
@@ -70,7 +70,7 @@ This also builds the nested `deployables/` app automatically (chained in the `bu
 - clsx, tailwind-merge — MIT
 - @gltf-transform (build-time only, not shipped in the site) — MIT
 
-**3D geometry, floor plans, maps, and photographs**: all original team work — Rhino models, renders, material reference images, and site photography by Divya Venkatraman, Samhitha Chandrashekar, and Ziad Ismaeil.
+**3D geometry and photographs**: all original team work — Rhino models, renders, material reference images, and site/exhibition photography by Divya Venkatraman, Samhitha Chandrashekar, and Ziad Ismaeil.
 
 ## Permissions
 
