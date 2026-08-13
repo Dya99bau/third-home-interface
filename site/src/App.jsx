@@ -1866,6 +1866,9 @@ function ModeToggle({ mode, onMode }) {
       <a className="mode-btn" href="./materials/personas-descriptions.pdf" target="_blank" rel="noopener">
         Materials
       </a>
+      <a className="mode-btn" href="./presentation/index.html">
+        Presentation
+      </a>
     </div>
   )
 }
