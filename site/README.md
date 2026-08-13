@@ -17,6 +17,7 @@ Wolfsburg is a company town built around Volkswagen's shift schedule: when facto
 
 ## How to use this site
 
+- **Third Home** (top nav) is the persona landing page — pick a character (Newcomer, Artist-Curator, Retiree, Urban Wanderer, Volkswagen Worker) to see who Third Home is for and what they'd do there, then **Let's begin!** hands off into the booking interface.
 - The site opens on the **Space** view — the interactive 3D booking/deployable-module interface. **Plan/Iso** toggle the camera; click floor cells to book a space; the left panel toggles model layers.
 - **Events** and **Exhibition** are alternate views of the same 3D space.
 - **Deployables** (top nav) opens a separate deployable-module design tool, forked from a sibling studio project and adapted for Third Home.
@@ -26,7 +27,8 @@ Wolfsburg is a company town built around Volkswagen's shift schedule: when facto
 ## What is frozen
 
 - The exhibition visitors actually met was a separate Next.js app, deployed directly from a laptop to a free Vercel account, never committed to any repository. It has been recovered, ported into this site (the **HOME** section), and is now static — no server, no separate deployment.
-- One of the four source repositories (`SamSam8620/third-home-interface`) has newer UI work on GitHub — a print-export feature, booking-halo highlighting, floor-navigation buttons, homepage character illustrations — that exists only as a minified, unreadable JavaScript bundle. No readable source for these changes could be found anywhere in the project. They are not in this build. If the source exists on another machine, it's worth recovering before it's lost for good.
+- One of the four source repositories (`SamSam8620/third-home-interface`) has newer UI work on GitHub — a print-export feature, booking-halo highlighting, floor-navigation buttons — that exists only as a minified, unreadable JavaScript bundle. No readable source for these changes could be found anywhere in the project. They are not in this build. If the source exists on another machine, it's worth recovering before it's lost for good.
+- The homepage character illustrations from that same deployment (the persona landing page — Newcomer, Artist-Curator, Retiree, Urban Wanderer, Volkswagen Worker) *are* recovered, but not from source: the live page's actual content and character artwork were extracted directly (the images are static assets, downloadable even when the JS logic isn't) and rebuilt as the **Third Home** tab in this site. The interaction is a faithful recreation, not the original code.
 - The governance section's "3D Model" link used to embed a separate, stale, mismatched build (from a different studio project entirely) in an iframe. It now links directly to this site's own working 3D viewer.
 - The booking interface's building and space geometry was previously raw exported JSON — the largest single file was 67MB, and the full set totaled roughly 250MB. It has been converted to Draco-compressed `.glb` (roughly 5MB total) and loads from local files, not a backend.
 - pdf.js is referenced in this project's original build brief but was never actually found anywhere in any of the four source repositories — there was nothing to vendor.
