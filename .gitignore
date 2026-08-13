@@ -1,6 +1,8 @@
-# source/, exhibition/, and raw/ are Nextcloud-only staging areas (per the
-# submission brief's folder split: GitHub Pages gets site/, Nextcloud gets
-# everything including large source files). Not meant for the git repo.
+# source/, exhibition/, raw/, and Presentation/ are Nextcloud-only staging areas
+# (per the submission brief's folder split: GitHub Pages gets site/, Nextcloud
+# gets everything including large source files). Not meant for the git repo.
 /source/
 /exhibition/
 /raw/
+/Presentation/
+/scripts/pdf-check/node_modules/

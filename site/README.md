@@ -35,8 +35,8 @@ Wolfsburg is a company town built around Volkswagen's shift schedule: when facto
 
 ## Contents
 
-- `materials/` — personas descriptions and a 300 dpi scan of the printed exhibition sheets showing the building versions (both PDF), viewable at `materials/index.html`. A site map and floor plans were referenced in the original brief but confirmed not to exist anywhere in the project.
-- `presentation/` — 9 slides captured from the live presentation site (third-home-wolfsburg.vercel.app), viewable at `presentation/index.html`.
+- `materials/` — personas descriptions, a 300 dpi scan of the printed exhibition sheets showing the building versions, a figure-ground map of the Wolfsburg site, and the exhibition route-map/instructions poster (all PDF), viewable at `materials/index.html`. The full-resolution floor plans (a single large architectural drawing, and a separate ground-floor plan with hundreds of embedded raster layers) were found later, in print-export sizes of 48MB and 473MB — too large to ship in this portable site, so they're kept only in the Nextcloud submission's `Presentation/` folder, not here.
+- `presentation/` — 9 slides captured from the live presentation site (third-home-wolfsburg.vercel.app), viewable at `presentation/index.html`. A separate set of exhibition board exports (including a 633MB single-canvas master PDF) is in the Nextcloud submission's `Presentation/` folder.
 - `deployables/` — a second, separately-built 3D deployable-module design tool (forked from a sibling studio project, Rewire Wolfsburg, and rebranded here).
 - Governance/social section (Home, Governance, Events, Stay, Community, Open Studio, Configure) — ported from what was originally a separate app, `home-app`, now merged directly into this site.
 
