@@ -4,6 +4,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, PerspectiveCamera, OrthographicCamera, Center, Html } from '@react-three/drei'
 import * as THREE from 'three'
 import ExhibitionScene from './ExhibitionScene'
+import { loadModelAsStatics, loadRoofMorph } from './loadModel'
 
 // ── geometry helpers ──────────────────────────────────────────────────────────
 function buildGeometry(part) {
@@ -2184,8 +2185,7 @@ export default function App() {
   }
 
   useEffect(() => {
-    fetch('./model.json')
-      .then((r) => r.json())
+    loadModelAsStatics('/models/model.glb')
       .then((d) => {
         setData(d)
         const init = {}
@@ -2202,8 +2202,7 @@ export default function App() {
   }, [data])
 
   useEffect(() => {
-    fetch('./roof_morph.json')
-      .then(r => r.json())
+    loadRoofMorph('/models/roof_morph.glb')
       .then(d => setRoofMorphData(d))
       .catch(() => {})
   }, [])

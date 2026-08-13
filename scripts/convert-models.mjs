@@ -49,7 +49,7 @@ function getMaterial(colorRGB255, opacity = 1) {
   return mat;
 }
 
-function addTriangleMesh(name, positionsFlat, indicesFlat, colorRGB255, opacity) {
+function addTriangleMesh(name, positionsFlat, indicesFlat, colorRGB255, opacity, extras) {
   const positionAccessor = doc
     .createAccessor()
     .setType('VEC3')
@@ -74,6 +74,9 @@ function addTriangleMesh(name, positionsFlat, indicesFlat, colorRGB255, opacity)
 
   const mesh = doc.createMesh(name).addPrimitive(prim);
   const node = doc.createNode(name).setMesh(mesh);
+  // preserve original per-part fields (e.g. floor, opacity) the app reads directly,
+  // so the loader can reconstitute the exact {layer, floor, color, opacity, ...} shape
+  if (extras) node.setExtras({ ...node.getExtras(), ...extras });
   scene.addChild(node);
   return node;
 }
@@ -83,13 +86,16 @@ let partCount = 0;
 if (Array.isArray(data.statics)) {
   // schema 1: model.json — group by layer, one node per static entry
   for (const s of data.statics) {
-    addTriangleMesh(s.layer, s.positions, s.indices, s.color, s.opacity ?? 1);
+    addTriangleMesh(s.layer, s.positions, s.indices, s.color, s.opacity ?? 1, {
+      floor: s.floor ?? null,
+      opacity: s.opacity ?? 1,
+    });
     partCount++;
   }
 } else if (Array.isArray(data.parts)) {
   // schema 2: per-space *_model.json
   for (const [i, p] of data.parts.entries()) {
-    addTriangleMesh(p.layer || `part_${i}`, p.position, p.index, p.color, 1);
+    addTriangleMesh(p.layer || `part_${i}`, p.position, p.index, p.color, 1, { opacity: 1 });
     partCount++;
   }
 } else if (Array.isArray(data.frames)) {
@@ -142,6 +148,12 @@ if (Array.isArray(data.statics)) {
   const mesh = doc.createMesh('roof').addPrimitive(prim);
   mesh.setWeights(data.frames.slice(1).map(() => 0));
   const node = doc.createNode('roof').setMesh(mesh);
+  // RoofMesh interpolates by frame.pressure and needs quad-shaped faces
+  // (not the triangulated mesh above) — embed the original structure
+  // losslessly rather than trying to reconstruct pressure/quads from a
+  // triangulated mesh on load. Small dataset (164KB raw), no real benefit
+  // from mesh-based storage anyway.
+  node.setExtras({ frames: data.frames, faces: data.faces });
   scene.addChild(node);
   partCount = 1;
 } else {
