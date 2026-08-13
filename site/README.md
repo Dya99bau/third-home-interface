@@ -3,7 +3,7 @@
 Prompt City. Urban Vision Wolfsburg 2026 — Design studio SoSe 2026
 Bauhaus-Universität Weimar, InfAU
 
-**Team:** <NEEDS TEAM INPUT — full names>
+**Team:** Divya Venkatraman, Samhitha Chandrashekar, Ziad Ismaeil
 
 ## Abstract
 
