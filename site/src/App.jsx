@@ -4,6 +4,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, PerspectiveCamera, OrthographicCamera, Center, Html } from '@react-three/drei'
 import * as THREE from 'three'
 import ExhibitionScene from './ExhibitionScene'
+import PersonasScene from './PersonasScene'
 import { loadModelAsStatics, loadRoofMorph } from './loadModel'
 import Screensaver from './Screensaver'
 import GovernanceApp from './governance/GovernanceApp'
@@ -1837,6 +1838,12 @@ function ModeToggle({ mode, onMode }) {
   return (
     <div className="mode-toggle">
       <button
+        className={`mode-btn ${mode === 'personas' ? 'active' : ''}`}
+        onClick={() => onMode('personas')}
+      >
+        Third Home
+      </button>
+      <button
         className={`mode-btn ${mode === 'editor' ? 'active' : ''}`}
         onClick={() => onMode('editor')}
       >
@@ -2452,6 +2459,10 @@ export default function App() {
 
   if (mode === 'exhibition') {
     return <ExhibitionScene onBack={() => handleMode('editor')} />
+  }
+
+  if (mode === 'personas') {
+    return <PersonasScene onBegin={() => handleMode('editor')} />
   }
 
   if (mode.startsWith('gov-')) {
