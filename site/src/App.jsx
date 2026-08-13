@@ -2370,7 +2370,7 @@ export default function App() {
   }
 
   useEffect(() => {
-    loadModelAsStatics('/models/model.glb')
+    loadModelAsStatics('./models/model.glb')
       .then((d) => {
         setData(d)
         const init = {}
@@ -2387,7 +2387,7 @@ export default function App() {
   }, [data])
 
   useEffect(() => {
-    loadRoofMorph('/models/roof_morph.glb')
+    loadRoofMorph('./models/roof_morph.glb')
       .then(d => setRoofMorphData(d))
       .catch(() => {})
   }, [])

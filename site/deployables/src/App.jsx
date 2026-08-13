@@ -1415,7 +1415,7 @@ function CataloguePanel({ catFloor, catCells, levelCount, onLevelCount, modConfi
   return (
     <div className="panel cat-panel">
       <div className="panel-header">
-        <div className="panel-logo">Rewire</div>
+        <div className="panel-logo">Third Home</div>
         <div className="panel-subtitle">Module Catalogue</div>
       </div>
 
@@ -2004,7 +2004,7 @@ function _DeadCataloguePanel({ focusId, onFocus, catSubTab, onSubTab, unitCount,
   return (
     <div className="panel cat-panel">
       <div className="panel-header">
-        <div className="panel-logo">Rewire</div>
+        <div className="panel-logo">Third Home</div>
         <div className="panel-subtitle">Module Catalogue</div>
       </div>
 
@@ -2148,7 +2148,7 @@ function Panel({ layers, visible, setVisible, activeFloor, setActiveFloor, xrayL
   return (
     <div className="panel">
       <div className="panel-header">
-        <div className="panel-logo">Rewire</div>
+        <div className="panel-logo">Third Home</div>
         <div className="panel-subtitle">Wolfsburg · Deployable Modules</div>
       </div>
 
