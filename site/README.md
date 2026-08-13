@@ -70,7 +70,7 @@ This also builds the nested `deployables/` app automatically (chained in the `bu
 - clsx, tailwind-merge — MIT
 - @gltf-transform (build-time only, not shipped in the site) — MIT
 
-**3D geometry, floor plans, maps, and photographs**: <NEEDS TEAM INPUT — please confirm these are the team's own work (Rhino models, renders, site photography), or provide source + licence for anything that isn't. In particular: the material reference images (roof/facade textures) and site photographs found in the project's `materials/` folder during consolidation — their origin wasn't stated anywhere in the project files.>
+**3D geometry, floor plans, maps, and photographs**: all original team work — Rhino models, renders, material reference images, and site photography by Divya Venkatraman, Samhitha Chandrashekar, and Ziad Ismaeil.
 
 ## Permissions
 
