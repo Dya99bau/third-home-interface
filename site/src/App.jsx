@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, PerspectiveCamera, OrthographicCamera, Center, Html } from '@react-three/drei'
 import * as THREE from 'three'
+import ExhibitionScene from './ExhibitionScene'
 
 // ── geometry helpers ──────────────────────────────────────────────────────────
 function buildGeometry(part) {
@@ -1741,6 +1742,12 @@ function ModeToggle({ mode, onMode }) {
       >
         Events
       </button>
+      <button
+        className={`mode-btn ${mode === 'exhibition' ? 'active' : ''}`}
+        onClick={() => onMode('exhibition')}
+      >
+        Exhibition
+      </button>
     </div>
   )
 }
@@ -2213,6 +2220,10 @@ export default function App() {
 
   const viewerStyle  = VIEWER_STYLES[viewerStyleKey]  || VIEWER_STYLES.arctic
   const editorScheme = 'cyber'
+
+  if (mode === 'exhibition') {
+    return <ExhibitionScene onBack={() => handleMode('editor')} />
+  }
 
   return (
     <div className="app" data-mode={mode} data-view={viewMode}>

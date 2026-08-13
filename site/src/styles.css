@@ -1401,3 +1401,60 @@ body {
   box-shadow: 0 0 8px rgba(76,201,240,0.5);
   cursor: pointer;
 }
+
+/* ── exhibition scene ── */
+.exhibition-scene {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+}
+.exhibition-scene canvas { display: block; }
+
+.exhibition-back-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  padding: 9px 16px;
+  border: 1px solid var(--border-hi);
+  border-radius: 999px;
+  background: rgba(8, 12, 26, 0.82);
+  backdrop-filter: blur(10px);
+  color: var(--text);
+  font-family: system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+.exhibition-back-btn:hover {
+  background: var(--pink);
+  color: #fff;
+}
+
+.exhibition-title {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 10px 16px;
+  border: 1px solid var(--border-hi);
+  border-radius: 10px;
+  background: rgba(8, 12, 26, 0.82);
+  backdrop-filter: blur(10px);
+  text-align: right;
+}
+.exhibition-title-main {
+  font-family: system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--text-strong);
+}
+.exhibition-title-sub {
+  font-family: system-ui, sans-serif;
+  font-size: 10.5px;
+  color: var(--muted);
+}
