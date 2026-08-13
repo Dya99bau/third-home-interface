@@ -9,7 +9,7 @@ Bauhaus-Universität Weimar, InfAU
 
 Third Home confronts Wolfsburg's rhythm as a shift-based town that empties after factory hours, when commuters leave and public life fades. It draws on Ray Oldenburg's notion of the "third place" to propose a collectively owned six-storey community building, neither home nor workplace, that gives commuters and neighbouring residents a reason to stay into the evening. The structure separates a fixed core of services and long-stay rooms from lightweight modules that members can book, add and reconfigure themselves, so the building stays, in the team's terms, "always buildable." A digital interface governs both space and community: residents book rooms directly within a three-dimensional model and decide together through defined roles of guests, members and keepers. An open ground-floor kitchen ties the building to the street, and the model is intended to be repeated across the city's districts.
 
-<NEEDS TEAM INPUT — this is the exhibition abstract card as printed; it doesn't mention AI's role, which the README template asks for separately. Add a sentence on how AI was used in the design process (ideation, governance model, imagery, code) if you want that covered here, or leave as-is if the abstract is meant to stand alone.>
+AI-assisted development shaped how interactive the interface became, turning the booking model from a static plan into something residents navigate and act on directly, and helped extend the governance concept — guests, members, and keepers — from an idea into the working logic of Third Home itself.
 
 ## The urban issue
 
