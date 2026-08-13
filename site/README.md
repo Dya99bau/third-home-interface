@@ -33,7 +33,7 @@ Wolfsburg is a shift-based company town: it empties after factory hours, as comm
 
 ## Contents
 
-- `materials/` — personas descriptions (PDF). A site map and floor plans were referenced in the original brief but confirmed not to exist anywhere in the project.
+- `materials/` — personas descriptions and a 300 dpi scan of the printed exhibition sheets showing the building versions (both PDF), viewable at `materials/index.html`. A site map and floor plans were referenced in the original brief but confirmed not to exist anywhere in the project.
 - `presentation/` — 9 slides captured from the live presentation site (third-home-wolfsburg.vercel.app), viewable at `presentation/index.html`.
 - `deployables/` — a second, separately-built 3D deployable-module design tool (forked from a sibling studio project, Rewire Wolfsburg, and rebranded here).
 - Governance/social section (Home, Governance, Events, Stay, Community, Open Studio, Configure) — ported from what was originally a separate app, ` home-app`, now merged directly into this site.
