@@ -7,15 +7,13 @@ Bauhaus-Universität Weimar, InfAU
 
 ## Abstract
 
-<NEEDS TEAM REVIEW — drafted from the site's own content, not the original studio brief. Please correct.>
+Third Home confronts Wolfsburg's rhythm as a shift-based town that empties after factory hours, when commuters leave and public life fades. It draws on Ray Oldenburg's notion of the "third place" to propose a collectively owned six-storey community building, neither home nor workplace, that gives commuters and neighbouring residents a reason to stay into the evening. The structure separates a fixed core of services and long-stay rooms from lightweight modules that members can book, add and reconfigure themselves, so the building stays, in the team's terms, "always buildable." A digital interface governs both space and community: residents book rooms directly within a three-dimensional model and decide together through defined roles of guests, members and keepers. An open ground-floor kitchen ties the building to the street, and the model is intended to be repeated across the city's districts.
 
-Third Home proposes a collectively-owned, temporarily-held living space in Wolfsburg — a city whose housing and social life are shaped almost entirely around Volkswagen. Rather than another form of company housing, Third Home offers a middle ground between short-term visitor and permanent resident: a building governed by the people living in it, through a consent-based decision process with three roles — Guest, Member, and Keeper — each trading money for time differently. Funding can come from outside (including VW) without buying a vote: decision-making is explicitly firewalled from whoever pays. The building itself is reconfigurable, with deployable modules that let a floor become a workshop, a café, a gathering space, or a place to stay depending on what the community needs that week. AI's role in this submission was primarily technical: consolidating four divergent repositories into one working site, converting ~250MB of raw exported geometry into compressed, offline-loadable 3D assets, and rebuilding the project to run with no server, no API keys, and no CDN dependency, so it keeps working after the accounts that hosted it are gone.
+<NEEDS TEAM INPUT — this is the exhibition abstract card as printed; it doesn't mention AI's role, which the README template asks for separately. Add a sentence on how AI was used in the design process (ideation, governance model, imagery, code) if you want that covered here, or leave as-is if the abstract is meant to stand alone.>
 
 ## The urban issue
 
-<NEEDS TEAM REVIEW — inferred from the app's own content (the "VW Firewall" governance rule, the Guest/Member/Keeper model), not from a studio brief document.>
-
-Wolfsburg's housing and social infrastructure are dominated by Volkswagen, leaving little room for people who fall outside that track — newcomers, commuters, and short-term residents without a company-provided path into the city's community life.
+Wolfsburg is a shift-based company town: it empties after factory hours, as commuters leave and public life fades. Third Home responds with Ray Oldenburg's concept of a "third place" — a space that is neither home nor workplace — giving commuters and neighbouring residents a reason to stay into the evening rather than a reason to leave.
 
 ## How to use this site
 
