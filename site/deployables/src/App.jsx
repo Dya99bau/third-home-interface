@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, PerspectiveCamera, OrthographicCamera, Center } from '@react-three/drei'
 import * as THREE from 'three'
+import { loadModelAsStatics } from './loadModel'
 
 // ── geometry helpers ──────────────────────────────────────────────────────────
 function buildGeometry(part) {
@@ -2415,8 +2416,7 @@ export default function App() {
   }
 
   useEffect(() => {
-    fetch('./model.json')
-      .then((r) => r.json())
+    loadModelAsStatics('./models/model.glb')
       .then((d) => {
         setData(d)
         // these layers clutter the booking/selection view — start hidden, user can toggle on
