@@ -1748,6 +1748,9 @@ function ModeToggle({ mode, onMode }) {
       >
         Exhibition
       </button>
+      <a className="mode-btn" href="/deployables/">
+        Deployables
+      </a>
     </div>
   )
 }

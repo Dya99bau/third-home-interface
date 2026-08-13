@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && npm --prefix deployables install && npm --prefix deployables run build",
     "preview": "vite preview",
     "build:gh-pages": "vite build --mode gh-pages",
     "deploy": "npm run build:gh-pages && gh-pages -d dist --nojekyll"
